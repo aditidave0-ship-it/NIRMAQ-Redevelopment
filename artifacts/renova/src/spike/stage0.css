@@ -1,0 +1,439 @@
+/* Stage 0 homepage spike — scoped styles (s0- prefix). Additive only:
+   nothing here restyles any existing page. */
+.s0-page {
+  --s0-ivory: #f3eee8;
+  --s0-navy: #19243b;
+  --s0-plum: #71365f;
+  --s0-sand: #d1b49a;
+  background: var(--s0-ivory);
+  color: var(--s0-navy);
+  font-family: "DM Sans", system-ui, sans-serif;
+  min-height: 100vh;
+}
+.s0-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 22px;
+  background: rgba(25, 36, 59, 0.96);
+  color: #fff;
+}
+.s0-wordmark {
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  font-size: 17px;
+  color: #fff;
+  text-decoration: none;
+}
+.s0-topnav {
+  display: flex;
+  gap: 18px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.s0-topnav a {
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 13.5px;
+}
+.s0-topnav a:hover {
+  color: #fff;
+}
+.s0-login {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+.s0-spike-badge {
+  background: var(--s0-plum);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.s0-switcher {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 14px 22px;
+  background: #fff;
+  border-bottom: 1px solid #e4ddd2;
+}
+.s0-switcher strong {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+.s0-switch-btn {
+  border: 1.5px solid var(--s0-navy);
+  background: transparent;
+  color: var(--s0-navy);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.s0-switch-btn[aria-pressed="true"] {
+  background: var(--s0-plum);
+  border-color: var(--s0-plum);
+  color: #fff;
+}
+.s0-switch-note {
+  font-size: 12.5px;
+  color: #5c6577;
+  margin-left: auto;
+  max-width: 460px;
+}
+/* Scroll stage: tall section, sticky viewport */
+.s0-scroll {
+  position: relative;
+  height: 320vh;
+  background: var(--s0-navy);
+}
+.s0-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.s0-scene {
+  position: absolute;
+  inset: 0;
+}
+.s0-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Layered variant stage keeps the mockup's exact aspect so layers align */
+.s0-layer-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* matches the scene-crop aspect (1004x715) so layers stay aligned */
+  width: max(100vw, 140.42vh);
+  height: max(71.21vw, 100vh);
+}
+.s0-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+.s0-layer-front {
+  position: absolute;
+  left: 0;
+  top: 81.6%;
+  width: 100%;
+  height: 18.4%;
+  pointer-events: none;
+  user-select: none;
+}
+.s0-blueprint-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.s0-dusk {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(25, 36, 59, 0.34) 0%,
+    rgba(25, 36, 59, 0) 30%,
+    rgba(25, 36, 59, 0) 62%,
+    rgba(16, 22, 38, 0.55) 100%
+  );
+  pointer-events: none;
+}
+/* Copy overlays */
+.s0-hero-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 9vh 6vw 0;
+  max-width: 780px;
+  color: #fff;
+  z-index: 5;
+}
+.s0-eyebrow {
+  letter-spacing: 0.34em;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--s0-sand);
+  text-transform: uppercase;
+  margin: 0 0 14px;
+}
+.s0-h1 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(42px, 6.4vw, 84px);
+  line-height: 1.04;
+  margin: 0 0 18px;
+  color: #fff;
+}
+.s0-h1 em {
+  color: #e7b8d6;
+  font-style: italic;
+}
+.s0-h1 .s0-plum-word {
+  color: #d98bb9;
+}
+.s0-sub {
+  font-size: clamp(15px, 1.6vw, 19px);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 520px;
+  margin: 0 0 26px;
+}
+.s0-ctas {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.s0-cta-primary {
+  background: var(--s0-plum);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 13px 26px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.s0-cta-secondary {
+  background: transparent;
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 4px;
+}
+.s0-cta-play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+.s0-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 15vh;
+  text-align: center;
+  color: #fff;
+  z-index: 5;
+  padding: 0 6vw;
+}
+.s0-caption p {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(22px, 3.2vw, 38px);
+  font-style: italic;
+  margin: 0;
+  text-shadow: 0 2px 24px rgba(10, 14, 26, 0.65);
+}
+.s0-caption .s0-stage-kicker {
+  font-family: "DM Sans", sans-serif;
+  font-style: normal;
+  font-size: 11.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--s0-sand);
+  margin-bottom: 10px;
+}
+.s0-scroll-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 108px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  z-index: 5;
+  text-align: center;
+}
+.s0-variant-chip {
+  position: absolute;
+  top: 58px;
+  left: 16px;
+  z-index: 6;
+  background: rgba(16, 22, 38, 0.72);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.s0-perf {
+  position: absolute;
+  top: 58px;
+  right: 16px;
+  z-index: 6;
+  background: rgba(16, 22, 38, 0.72);
+  color: #b8f0c8;
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-family: "DM Mono", monospace;
+}
+/* Stakeholder bar */
+.s0-stakebar {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 22px;
+  z-index: 6;
+  display: flex;
+  gap: 4px;
+  background: rgba(21, 29, 48, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 8px;
+  max-width: calc(100vw - 24px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.s0-stakebar a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  white-space: nowrap;
+}
+.s0-stakebar a:hover {
+  background: rgba(113, 54, 95, 0.55);
+}
+/* Static (reduced motion) layout */
+.s0-static {
+  position: relative;
+  background: var(--s0-navy);
+}
+.s0-static-frame {
+  position: relative;
+  height: 82vh;
+  overflow: hidden;
+}
+.s0-static-captions {
+  background: var(--s0-navy);
+  color: #fff;
+  padding: 34px 6vw 44px;
+  display: grid;
+  gap: 20px;
+}
+.s0-static-captions h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  margin: 0;
+  font-size: 26px;
+}
+.s0-static-captions ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+  font-size: 16.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+/* Notes section under the experience */
+.s0-notes {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 54px 22px 80px;
+}
+.s0-notes h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+.s0-notes h3 {
+  font-size: 17px;
+  margin: 30px 0 8px;
+}
+.s0-notes p,
+.s0-notes li {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #39415a;
+}
+.s0-notes table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.s0-notes th,
+.s0-notes td {
+  border: 1px solid #ddd4c6;
+  padding: 8px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.s0-notes th {
+  background: #efe8dc;
+}
+.s0-poster-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 640px) {
+  .s0-topnav {
+    display: none;
+  }
+  .s0-hero-copy {
+    padding-top: 16vh;
+  }
+  .s0-variant-chip {
+    max-width: 58vw;
+    font-size: 11px;
+  }
+  .s0-perf {
+    top: 104px;
+    font-size: 11px;
+  }
+  .s0-caption {
+    bottom: 19vh;
+  }
+  .s0-scroll-hint {
+    bottom: 208px;
+  }
+  .s0-stakebar a {
+    font-size: 12.5px;
+    padding: 7px 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s0-page * {
+    scroll-behavior: auto !important;
+  }
+}
