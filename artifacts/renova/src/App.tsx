@@ -97,6 +97,8 @@ const LiveWorkspace = lazy(() =>
     default: module.LiveWorkspace,
   })),
 );
+// Stage 0 design spike (additive route only; not linked from the live site).
+const Stage0Spike = lazy(() => import("./spike/Stage0Spike"));
 
 function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -4293,6 +4295,12 @@ function Router() {
   if (legacyApplication)
     return <LoadingPage label="Opening your NIRMAQ workspace" />;
   if (pathname === "/") return <MarketingHome />;
+  if (pathname === "/spike/homepage-stage0")
+    return (
+      <Suspense fallback={<LoadingPage label="Loading the Stage 0 design spike" />}>
+        <Stage0Spike />
+      </Suspense>
+    );
   if (pathname === "/platform/live")
     return (
       <Suspense
