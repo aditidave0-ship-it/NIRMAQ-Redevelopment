@@ -161,19 +161,6 @@ async function rateLimitAuthRequest(
   );
 }
 
-async function rateLimitAuthIpRequest(
-  database: ReturnType<typeof getDb>,
-  request: { ip?: string },
-  action: AuthRateLimitAction,
-) {
-  await enforceAuthRateLimit(
-    database,
-    action,
-    authRateLimitSubject(request.ip || "unknown", "*"),
-    AUTH_RATE_LIMITS[action],
-  );
-}
-
 async function replaceVerificationOtp(
   database: ReturnType<typeof getDb>,
   userId: string,
@@ -597,7 +584,6 @@ router.post("/auth/reset-password", async (request, response, next) => {
   try {
     const input = resetPasswordSchema.parse(request.body);
     const database = requireDb();
-    await rateLimitAuthIpRequest(database, request, "RESET_PASSWORD");
     const now = new Date();
     const [record] = await database
       .select({

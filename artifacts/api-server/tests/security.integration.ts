@@ -55,7 +55,6 @@ await engine.exec(
 );
 
 const app = express();
-app.set("trust proxy", 1);
 app.use(
   "/api/billing/webhook",
   express.raw({ type: "application/json", limit: "256kb" }),
@@ -90,15 +89,10 @@ async function request(
   method = "GET",
   cookie = "",
   body?: unknown,
-  forwardedFor?: string,
 ) {
   return fetch(origin + "/api" + path, {
     method,
-    headers: {
-      "content-type": "application/json",
-      cookie,
-      ...(forwardedFor ? { "x-forwarded-for": forwardedFor } : {}),
-    },
+    headers: { "content-type": "application/json", cookie },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
@@ -1082,18 +1076,6 @@ try {
   );
   checks++;
   assert.equal((await request("/auth/me", "GET", a.cookie)).status, 401);
-  checks++;
-  // Invalid password-reset tokens are deliberately rate-limited by client IP;
-  // token verification remains single-use and is never bypassed in tests.
-  let resetLimitResponse: Response | undefined;
-  for (let attempt = 0; attempt < 21; attempt++) {
-    resetLimitResponse = await request("/auth/reset-password", "POST", "", {
-      token: `TEST-ONLY-invalid-reset-token-${String(attempt).padStart(8, "0")}`,
-      password: "new-password-for-test",
-    }, "198.51.100.77");
-    if (attempt < 20) assert.notEqual(resetLimitResponse.status, 429);
-  }
-  assert.equal(resetLimitResponse?.status, 429);
   checks++;
   console.log(
     `PASS: ${checks} database-backed auth/draft/authorization assertions (isolated PostgreSQL/PGlite).`,
