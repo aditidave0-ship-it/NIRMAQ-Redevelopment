@@ -11,6 +11,13 @@ out-tsc
 # dependencies
 node_modules
 
+# Local environment files can contain credentials. Keep checked-in templates
+# explicit so real values cannot be committed by accident.
+.env
+.env.*
+!.env.example
+!.env.template
+
 # IDEs and editors
 /.idea
 .project

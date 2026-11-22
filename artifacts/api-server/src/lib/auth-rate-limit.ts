@@ -7,6 +7,7 @@ export type AuthRateLimitAction =
   | "VERIFY_EMAIL"
   | "RESEND_VERIFICATION"
   | "FORGOT_PASSWORD"
+  | "RESET_PASSWORD"
   | "LOGIN"
   | "PRIVACY_REQUEST"
   | "PRIVACY_VERIFY";
@@ -27,6 +28,7 @@ export const AUTH_RATE_LIMIT_POLICIES: Record<
   VERIFY_EMAIL: { limit: 10, windowMs: 10 * 60 * 1000 },
   RESEND_VERIFICATION: { limit: 3, windowMs: 60 * 60 * 1000 },
   FORGOT_PASSWORD: { limit: 5, windowMs: 60 * 60 * 1000 },
+  RESET_PASSWORD: { limit: 20, windowMs: 15 * 60 * 1000 },
   LOGIN: { limit: 10, windowMs: 15 * 60 * 1000 },
   PRIVACY_REQUEST: { limit: 5, windowMs: 60 * 60 * 1000 },
   PRIVACY_VERIFY: { limit: 10, windowMs: 10 * 60 * 1000 },
