@@ -86,9 +86,7 @@ export function RenovaHome() {
               <br />
               <em>Reimagined.</em>
             </h1>
-            <p>
-              A smarter, simpler way to navigate redevelopment in Mumbai.
-            </p>
+            <p>A smarter, simpler way to navigate redevelopment in Mumbai.</p>
             <div className="experience-hero-actions">
               <Link className="experience-button" href="/societies">
                 Explore Your Redevelopment <ArrowRight size={18} />
@@ -105,14 +103,23 @@ export function RenovaHome() {
             className="experience-tower"
             role="img"
             aria-label="A premium Mumbai residential tower transforming from blueprint into reality"
+          ></div>
+          <nav
+            className="experience-stakeholder-bar"
+            aria-label="Explore by role"
           >
-            
-          </div>
-          <nav className="experience-stakeholder-bar" aria-label="Explore by role">
-            <Link href="/societies"><Building2 size={20} /> Housing Societies</Link>
-            <Link href="/developers"><BriefcaseBusiness size={20} /> Developers</Link>
-            <Link href="/professionals/pmcs"><ClipboardCheck size={20} /> PMCs</Link>
-            <Link href="/professionals"><UsersRound size={20} /> Professionals</Link>
+            <Link href="/societies">
+              <Building2 size={20} /> Housing Societies
+            </Link>
+            <Link href="/developers">
+              <BriefcaseBusiness size={20} /> Developers
+            </Link>
+            <Link href="/professionals/pmcs">
+              <ClipboardCheck size={20} /> PMCs
+            </Link>
+            <Link href="/professionals">
+              <UsersRound size={20} /> Professionals
+            </Link>
           </nav>
         </section>
         <section
@@ -286,3 +293,4 @@ export function RenovaHome() {
     </div>
   );
 }
+
