@@ -72,7 +72,7 @@ const audiences = [
 export function RenovaHome() {
   const [step, setStep] = useState(0);
   return (
-    <div className="renova-experience">
+    <div className="renova-experience renova-home-reference">
       <ExperienceHeader />
       <main id="main-content">
         <section
@@ -86,16 +86,15 @@ export function RenovaHome() {
               <br />
               <em>Reimagined.</em>
             </h1>
-            <p>
-              One platform connecting housing societies, developers, PMCs and
-              redevelopment professionals.
-            </p>
-            <Link
-              className="experience-button"
-              href="/platform/live?mode=start"
-            >
-              Get Started <ArrowRight size={18} />
-            </Link>
+            <p>A smarter, simpler way to navigate redevelopment in Mumbai.</p>
+            <div className="experience-hero-actions">
+              <Link className="experience-button" href="/societies">
+                Explore Your Redevelopment <ArrowRight size={18} />
+              </Link>
+              <a className="experience-discover" href="#how-it-works">
+                <span aria-hidden="true">▶</span> Discover How It Works
+              </a>
+            </div>
             <p className="experience-hero-note">
               A clearer beginning. A connected journey.
             </p>
@@ -104,13 +103,24 @@ export function RenovaHome() {
             className="experience-tower"
             role="img"
             aria-label="A premium Mumbai residential tower transforming from blueprint into reality"
+          ></div>
+          <nav
+            className="experience-stakeholder-bar"
+            aria-label="Explore by role"
           >
-            <span className="experience-tower-caption">
-              THE SAME PROPERTY.
-              <br />
-              <strong>A NEW POSSIBILITY.</strong>
-            </span>
-          </div>
+            <Link href="/societies">
+              <Building2 size={20} /> Housing Societies
+            </Link>
+            <Link href="/developers">
+              <BriefcaseBusiness size={20} /> Developers
+            </Link>
+            <Link href="/professionals/pmcs">
+              <ClipboardCheck size={20} /> PMCs
+            </Link>
+            <Link href="/professionals">
+              <UsersRound size={20} /> Professionals
+            </Link>
+          </nav>
         </section>
         <section
           className="experience-section experience-container"
@@ -283,3 +293,4 @@ export function RenovaHome() {
     </div>
   );
 }
+
