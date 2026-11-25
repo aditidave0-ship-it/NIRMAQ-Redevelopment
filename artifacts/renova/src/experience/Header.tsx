@@ -20,7 +20,7 @@ export function ExperienceHeader() {
       </a>
       <div className="experience-header-inner">
         <Link href="/" className="experience-brand" aria-label={`${BRAND_NAME} home`}>
-          {BRAND_NAME}
+          <img className="experience-brand-logo" src="/brand/nirmaq-logo-navy.png" alt="" />
         </Link>
         <button
           className="experience-menu"
@@ -55,7 +55,7 @@ export function ExperienceFooter() {
     <footer className="experience-footer">
       <div>
         <Link href="/" className="experience-brand">
-          {BRAND_NAME}
+          <img className="experience-brand-logo" src="/brand/nirmaq-logo-navy.png" alt="" />
         </Link>
       </div>
       <nav aria-label="Footer navigation">

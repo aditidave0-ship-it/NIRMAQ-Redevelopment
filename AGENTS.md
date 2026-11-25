@@ -4,7 +4,7 @@ These standing instructions reflect the owner's decisions. Follow them for all w
 
 ## Current public brand
 - The current public product name is NIRMAQ. Use NIRMAQ in new public-facing copy and user-facing UI.
-- No NIRMAQ tagline, logo or favicon asset has been approved or supplied. Do not invent one; retain existing visual styling pending approved assets.
+- No NIRMAQ tagline has been approved. The NIRMAQ logo and favicon were supplied and approved by the owner on 23 Nov 2026 (final line mark: old society building → rising curve → new tower, NIRMAQ wordmark; navy on ivory + ivory on navy). Web assets live in artifacts/renova/public/brand/ with public/favicon.png. Do not invent a different logo; use only these approved assets.
 - The intended application origin is https://nirmaq.in, but domain attachment, DNS and HTTPS are unverified. Do not configure or claim it is live without explicit approval.
 - Preserve historical RENOVA repository paths, environment-variable names, internal identifiers and compatibility references unless a separately approved migration explicitly changes them.
 

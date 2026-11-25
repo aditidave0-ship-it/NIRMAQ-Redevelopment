@@ -2317,8 +2317,8 @@ export function LiveWorkspace() {
   return (
     <div className="live-workspace workspace-experience">
       <header className="live-header">
-        <Link href="/" className="live-logo">
-          NIRMAQ
+        <Link href="/" className="live-logo" aria-label="NIRMAQ home">
+          <img className="live-logo-img" src="/brand/nirmaq-logo-navy.png" alt="" />
         </Link>
         {account ? (
           <>

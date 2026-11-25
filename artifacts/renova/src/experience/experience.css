@@ -81,6 +81,11 @@
   margin-top: 5px;
   font-weight: 600;
 }
+.experience-brand-logo {
+  height: 46px;
+  width: auto;
+  display: block;
+}
 .experience-header nav {
   display: flex;
   align-items: center;
@@ -1010,13 +1015,13 @@
 }
 .renova-home-reference .experience-header .experience-button,
 .renova-home-reference .experience-hero .experience-button {
-  background: #71365f !important;
+  background: #141d39 !important;
   color: #fff !important;
   border-radius: 999px;
 }
 .renova-home-reference .experience-header .experience-button:hover,
 .renova-home-reference .experience-hero .experience-button:hover {
-  background: #5d2a4e !important;
+  background: #253c60 !important;
 }
 .renova-home-reference .experience-hero {
   position: relative;
@@ -1046,7 +1051,7 @@
       rgba(248, 242, 239, 0.04) 66%
     ),
     linear-gradient(0deg, rgba(14, 20, 37, 0.16), transparent 33%),
-    url("/renova-hero-v2.png") center 48% / cover;
+    url("/homepage/hero-composite-desktop.webp") center 48% / cover;
 }
 .renova-home-reference .experience-tower::after {
   display: none;
@@ -1071,7 +1076,7 @@
   margin-bottom: 26px;
 }
 .renova-home-reference .experience-hero h1 em {
-  color: #71365f;
+  color: #141d39;
 }
 .renova-home-reference .experience-hero-copy > p:first-of-type {
   max-width: 400px;
@@ -1099,7 +1104,7 @@
   place-items: center;
   width: 48px;
   height: 48px;
-  border: 1px solid #71365f;
+  border: 1px solid #141d39;
   border-radius: 50%;
   font-size: 13px;
 }
@@ -1138,10 +1143,10 @@
   border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 .renova-home-reference .experience-stakeholder-bar a:hover {
-  color: #f0c7df;
+  color: #bfd4f6;
 }
 .renova-home-reference :focus-visible {
-  outline-color: #71365f;
+  outline-color: #141d39;
 }
 @media (max-width: 900px) {
   .renova-home-reference .experience-header {
@@ -1186,7 +1191,7 @@
         rgba(248, 242, 239, 0.04)
       ),
       linear-gradient(0deg, rgba(14, 20, 37, 0.26), transparent 40%),
-      url("/renova-hero-v2.png") 62% center / cover;
+      url("/homepage/hero-composite-portrait.webp") center / cover;
   }
   .renova-home-reference .experience-hero-copy {
     width: 100%;
@@ -1224,3 +1229,241 @@
   }
 }
 
+
+/* Intro-video overlay (hero "Discover How It Works" control).
+   Deep blue + skin/ivory, matching the homepage/dashboard theme.
+   The <video> mounts only while the overlay is open. */
+.renova-home-reference button.experience-discover {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  padding: 0;
+}
+.experience-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(14, 20, 37, 0.88);
+}
+.experience-video-frame {
+  position: relative;
+  width: min(960px, 94vw);
+  background: #f7f2ea;
+  border: 1px solid #e3d9c8;
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 24px 60px rgba(10, 14, 26, 0.45);
+}
+.experience-video-frame video {
+  display: block;
+  width: 100%;
+  max-height: 78vh;
+  border-radius: 10px;
+  background: #0e1425;
+}
+.experience-video-close {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #f7f2ea;
+  border-radius: 50%;
+  background: #141d39;
+  color: #fff;
+  cursor: pointer;
+}
+.experience-video-close:hover {
+  background: #253c60;
+}
+
+/* Tentative feasibility check (public /societies) — qualitative screening. */
+.experience-tentative {
+  border-top: 1px solid #e3ddcf;
+  margin-top: 70px;
+  padding-top: 60px;
+  max-width: 760px;
+}
+.experience-tentative h2 {
+  margin-top: 0;
+}
+.experience-tentative-intro {
+  font-size: 15px;
+  max-width: 620px;
+}
+.experience-tentative-card {
+  background: #fffdf9;
+  border: 1px solid #e7e0d6;
+  border-radius: 20px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 28px;
+}
+.experience-tentative-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #14223b;
+}
+.experience-tentative-card input {
+  border: 1px solid #d6d8dc;
+  border-radius: 9px;
+  padding: 12px;
+  color: #14223b;
+  background: white;
+  font: inherit;
+  font-size: 14px;
+  width: 100%;
+  min-width: 0;
+}
+.experience-tentative-card .experience-button {
+  align-self: flex-start;
+}
+.experience-tentative-result {
+  background: #e8eef7;
+  padding: 35px;
+  border-radius: 20px;
+  margin-top: 28px;
+}
+.experience-tentative-result > svg {
+  color: #445a3f;
+  margin-bottom: 16px;
+}
+.experience-tentative-result h3 {
+  margin: 0 0 14px;
+}
+.experience-tentative-result ul {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+}
+.experience-tentative-result--favourable {
+  background: #eaf1e2;
+}
+.experience-tentative-result--challenging {
+  background: #f6ece5;
+}
+.experience-tentative-disclaimer {
+  font-size: 13px;
+  color: #566174;
+  margin: 0 0 22px;
+}
+@media (max-width: 600px) {
+  .experience-tentative {
+    margin-top: 50px;
+    padding-top: 44px;
+  }
+  .experience-tentative-card,
+  .experience-tentative-result {
+    padding: 24px;
+  }
+  .experience-tentative-card .experience-button {
+    align-self: stretch;
+  }
+}
+
+/* DCPR 2034 knowledge-centre guide (/knowledge-centre/dcpr-2034). */
+.experience-dcpr-section {
+  border-top: 1px solid #e3ddcf;
+  margin-top: 60px;
+  padding-top: 50px;
+}
+.experience-dcpr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-top: 28px;
+}
+.experience-dcpr-card {
+  background: #fffdf9;
+  border: 1px solid #e7e0d6;
+  border-radius: 20px;
+  padding: 26px;
+}
+.experience-dcpr-card h3 {
+  margin-top: 0;
+}
+.experience-dcpr-card p {
+  font-size: 14.5px;
+}
+.experience-dcpr-ask {
+  color: #253c60;
+}
+.experience-dcpr-note {
+  font-size: 14px;
+  color: #566174;
+  margin-top: 22px;
+}
+.experience-dcpr-stages {
+  list-style: none;
+  counter-reset: dcpr-stage;
+  padding: 0;
+  margin: 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.experience-dcpr-stages li {
+  counter-increment: dcpr-stage;
+  border-top: 1px solid #d8d0c4;
+  padding: 20px 0 20px 58px;
+  position: relative;
+}
+.experience-dcpr-stages li::before {
+  content: counter(dcpr-stage, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #253c60;
+}
+.experience-dcpr-stages h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+.experience-dcpr-stages p {
+  margin: 0;
+  font-size: 15px;
+}
+.experience-dcpr-disclaimer {
+  border: 1px solid #e7e0d6;
+  background: #e8eef7;
+  border-radius: 14px;
+  padding: 18px 22px;
+  font-size: 13.5px;
+  color: #3d4659;
+  margin-top: 50px;
+}
+.experience-dcpr-cta {
+  margin-top: 40px;
+}
+.experience-dcpr-cta .experience-text-link {
+  color: #14223b;
+}
+@media (max-width: 700px) {
+  .experience-dcpr-grid {
+    grid-template-columns: 1fr;
+  }
+  .experience-dcpr-section {
+    margin-top: 44px;
+    padding-top: 38px;
+  }
+}
