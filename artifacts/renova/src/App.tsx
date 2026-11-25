@@ -3163,7 +3163,8 @@ const publicPageMap: Record<string, PublicPageData> = {
     highlights: [
       {
         title: "Aziz Parihar — Founder",
-        detail: "NIRMAQ",
+        detail:
+          "Founder of NIRMAQ · 12+ years in real estate, construction and redevelopment across BMC, SRA and MHADA schemes.",
       },
       {
         title: "Our purpose",
