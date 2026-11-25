@@ -1421,6 +1421,53 @@
   text-decoration: underline;
 }
 
+/* Society Redevelopment Intake Form (/societies/intake-form). */
+.experience-intake-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 28px;
+}
+.experience-intake-form .experience-tentative-card {
+  margin-top: 0;
+}
+.experience-tentative-card select {
+  border: 1px solid #d6d8dc;
+  border-radius: 9px;
+  padding: 12px;
+  color: #14223b;
+  background: white;
+  font: inherit;
+  font-size: 14px;
+  width: 100%;
+  min-width: 0;
+}
+.experience-tentative-card .experience-consent {
+  flex-direction: row;
+  align-items: flex-start;
+  font-weight: 400;
+}
+.experience-tentative-card .experience-consent input {
+  width: 18px;
+  height: 18px;
+}
+.print-only {
+  display: none;
+}
+@media print {
+  .renova-experience .experience-header,
+  .renova-experience .experience-footer,
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .experience-tentative-card {
+    break-inside: avoid;
+  }
+}
+
 /* DCPR 2034 knowledge-centre guide (/knowledge-centre/dcpr-2034). */
 .experience-dcpr-section {
   border-top: 1px solid #e3ddcf;

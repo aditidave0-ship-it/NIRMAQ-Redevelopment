@@ -73,6 +73,10 @@ export function TentativeFeasibility() {
         step — building, then scheme and rates?{" "}
         <Link href="/feasibility-check">
           Try the 3-step feasibility check →
+        </Link>{" "}
+        Already sure you want to proceed?{" "}
+        <Link href="/societies/intake-form">
+          Fill in the society intake form →
         </Link>
       </p>
       <form className="experience-tentative-card" onSubmit={handleSubmit}>
