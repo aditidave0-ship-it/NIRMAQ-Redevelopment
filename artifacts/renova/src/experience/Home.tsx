@@ -306,6 +306,52 @@ export function RenovaHome() {
               </div>
             </div>
           </div>
+          <div className="experience-founder-note">
+            <span className="experience-eyebrow">
+              FOUNDER&rsquo;S THOUGHT
+            </span>
+            <p>
+              With over 12 years of experience in the real estate and
+              construction industry, I, Aziz Parihar, Founder of NIRMAQ,
+              bring a strong combination of technical knowledge, practical
+              experience and industry understanding to the redevelopment
+              sector. A Diploma in Engineering professional, I spent the
+              first 7 years of my career in construction, gaining hands-on
+              experience in site execution, project coordination and
+              operations, followed by 5 years of focused experience in
+              redevelopment, working across various BMC, SRA and MHADA
+              schemes.
+            </p>
+            <p>
+              My professional journey has involved business development,
+              housing society coordination, developer interactions,
+              feasibility-related processes, backend operations, data
+              management and ERP systems. Over the years, I have witnessed
+              the challenges housing societies face when trying to
+              understand redevelopment, identify suitable developers and
+              make informed decisions.
+            </p>
+            <p>
+              This inspired me to create NIRMAQ — a platform that brings
+              housing societies, developers, Project Management Consultants
+              (PMCs), architects, legal experts and other redevelopment
+              professionals together under one ecosystem. My vision is to
+              make redevelopment simpler, more accessible and transparent
+              by helping societies discover, connect with and evaluate
+              suitable developers and professionals, while providing a more
+              organised path from the initial discovery stage to the next
+              steps in their redevelopment journey.
+            </p>
+            <p>
+              For me, NIRMAQ is more than a business venture; it is a
+              vision shaped by years of industry experience and a
+              commitment to making redevelopment easier and more
+              transparent for everyone involved.
+            </p>
+            <p className="experience-founder-note-sign">
+              — Aziz Parihar, Founder, NIRMAQ
+            </p>
+          </div>
         </section>
         <section
           className="experience-section experience-container experience-contact-section"

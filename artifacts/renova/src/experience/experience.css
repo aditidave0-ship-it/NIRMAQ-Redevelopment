@@ -422,8 +422,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e7e1f1;
-  color: #504268;
+  background: #141d39;
+  color: #f7f2ea;
   font-size: 15px;
 }
 .experience-founder div {
@@ -433,6 +433,22 @@
 .experience-founder div span {
   font-size: 13px;
   color: #566174;
+}
+.experience-founder-note {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding-top: 44px;
+  border-top: 1px solid #e3ddcf;
+}
+.experience-founder-note p {
+  max-width: 860px;
+  font-size: 16px;
+  line-height: 1.75;
+  margin-bottom: 18px;
+}
+.experience-founder-note-sign {
+  font-weight: 600;
+  color: #141d39;
 }
 .experience-contact-section {
   border-top: 1px solid #e3ddcf;
