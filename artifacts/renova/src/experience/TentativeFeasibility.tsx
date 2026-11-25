@@ -50,15 +50,25 @@ export function TentativeFeasibility() {
       return;
     }
     setError(null);
-    setResult(
-      assessTentativeFeasibility({
-        plotAreaSqft: plot,
-        homeCount: homes,
-        avgHomeCarpetSqft: avgSize,
-        buildingAgeYears: age,
-        localityRatePerSqft: Number.isFinite(rate) && rate > 0 ? rate : null,
-      }),
-    );
+    const assessed = assessTentativeFeasibility({
+      plotAreaSqft: plot,
+      homeCount: homes,
+      avgHomeCarpetSqft: avgSize,
+      buildingAgeYears: age,
+      localityRatePerSqft: Number.isFinite(rate) && rate > 0 ? rate : null,
+    });
+    setResult(assessed);
+    // Carry only the tentative indication to the documents dashboard
+    // for this visit (see FeasibilityCheck.tsx) — one journey:
+    // check → documents → enquiry.
+    try {
+      window.sessionStorage.setItem(
+        "nirmaq.tentativeBand",
+        JSON.stringify({ band: assessed.band, bandLabel: assessed.bandLabel }),
+      );
+    } catch {
+      // Storage unavailable — the documents page simply shows no banner.
+    }
   }
 
   return (
@@ -165,11 +175,15 @@ export function TentativeFeasibility() {
           </p>
           <Link
             className="experience-button"
-            href="/contact?subject=Society%20feasibility"
+            href="/societies/documents"
           >
-            Request a full feasibility assessment
+            Next: prepare your feasibility documents
             <ArrowRight size={16} />
           </Link>
+          <p className="experience-tentative-disclaimer">
+            No documents are asked for yet — the documents come next, and
+            the enquiry only at the end, when you feel ready.
+          </p>
         </div>
       )}
     </section>

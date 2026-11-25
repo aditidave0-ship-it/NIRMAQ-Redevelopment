@@ -268,8 +268,31 @@ test("buildDocumentsEnquiryDetails: every item travels in the brief, nothing is 
   assert.match(payload.message, /info@nirmaq\.in/);
 });
 
-test("buildDocumentsEnquiryDetails: a partial checklist says plainly what is still needed", () => {
+test("buildDocumentsEnquiryDetails: the tentative indication from the check travels with the enquiry", () => {
   const details = buildDocumentsEnquiryDetails(
+    "Shanti Sagar CHS",
+    fullContact(),
+    fullAnswers(),
+    { band: "favourable", bandLabel: "Favourable — a detailed feasibility study looks worthwhile" },
+  );
+  const payload = buildRequirementEnquiryPayload(details);
+  assert.match(
+    payload.message,
+    /Tentative indication from the feasibility check: Favourable/,
+  );
+  const withoutBand = buildDocumentsEnquiryDetails(
+    "Shanti Sagar CHS",
+    fullContact(),
+    fullAnswers(),
+  );
+  const plainPayload = buildRequirementEnquiryPayload(withoutBand);
+  assert.ok(
+    !plainPayload.message.includes("Tentative indication"),
+    "no band carried over means no band line in the brief",
+  );
+});
+
+test("buildDocumentsEnquiryDetails: a partial checklist says plainly what is still needed", () => {  const details = buildDocumentsEnquiryDetails(
     "Shanti Sagar CHS",
     fullContact(),
     fullAnswers({

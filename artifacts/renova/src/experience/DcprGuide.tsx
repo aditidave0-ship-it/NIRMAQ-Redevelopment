@@ -258,15 +258,15 @@ export function DcprGuidePage() {
             sanctioned plans, cess and layout records, and road width — and
             turns it into numbers your committee can act on.
           </p>
-          <Link
-            className="experience-button"
-            href="/contact?subject=Society%20feasibility"
-          >
-            Request a full feasibility assessment
+          <Link className="experience-button" href="/societies">
+            Take the tentative feasibility check first
             <ArrowRight size={16} />
           </Link>
-          <Link className="experience-text-link" href="/societies">
-            Or take the tentative feasibility check first →
+          <Link
+            className="experience-text-link"
+            href="/contact?subject=Society%20feasibility"
+          >
+            Prefer to talk first? Raise an enquiry →
           </Link>
         </div>
       </main>

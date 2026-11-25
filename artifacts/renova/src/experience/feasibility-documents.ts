@@ -353,10 +353,19 @@ function fileLine(label: string, fileName: string): string {
  * file names chosen are listed; the files themselves are emailed by the
  * society, and the brief says so.
  */
+/** The tentative indication carried over from the feasibility check — a
+ * display hint for this visit only, so the team sees the context of the
+ * enquiry. It is never a substitute for the enquiry itself. */
+export type TentativeBandSummary = {
+  band: "favourable" | "moderate" | "challenging";
+  bandLabel: string;
+};
+
 export function buildDocumentsEnquiryDetails(
   societyName: string,
   contact: DocumentsContact,
   answers: DocumentAnswers,
+  tentativeBand?: TentativeBandSummary | null,
 ): RequirementEnquiryDetails {
   const readiness = documentsReadiness(answers);
   const memberCount = bifurcationTotal(answers);
@@ -366,6 +375,11 @@ export function buildDocumentsEnquiryDetails(
   const briefLines: string[] = [
     "Feasibility documents checklist — sent from the society documents dashboard",
   ];
+  if (tentativeBand) {
+    briefLines.push(
+      `Tentative indication from the feasibility check: ${tentativeBand.bandLabel}`,
+    );
+  }
   briefLines.push(
     `Google location: ${orNotGiven(answers.google_location)}`,
   );

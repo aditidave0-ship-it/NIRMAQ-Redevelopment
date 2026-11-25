@@ -33,6 +33,7 @@ import type {
   DocumentsContact,
   TeamItemStatus,
   TeamStatuses,
+  TentativeBandSummary,
 } from "./feasibility-documents";
 
 /**
@@ -130,6 +131,34 @@ export function FeasibilityDocumentsPage() {
   const [sending, setSending] = useState(false);
   const [sentReference, setSentReference] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  // The tentative indication from the feasibility check, carried over
+  // for this visit only (sessionStorage) — a display hint so the
+  // society sees one journey: check → documents → enquiry. The
+  // enquiry itself still goes through the real API.
+  const [tentativeBand, setTentativeBand] =
+    useState<TentativeBandSummary | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem("nirmaq.tentativeBand");
+      if (!raw) return;
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return;
+      const band = (parsed as { band?: unknown }).band;
+      if (band !== "favourable" && band !== "moderate" && band !== "challenging")
+        return;
+      const bandLabel = (parsed as { bandLabel?: unknown }).bandLabel;
+      setTentativeBand({
+        band,
+        bandLabel:
+          typeof bandLabel === "string" && bandLabel.length > 0
+            ? bandLabel
+            : band,
+      });
+    } catch {
+      // No valid indication carried over — the page works without it.
+    }
+  }, []);
   const rowCounter = useRef(0);
 
   useEffect(() => {
@@ -215,7 +244,7 @@ export function FeasibilityDocumentsPage() {
     setSending(true);
     try {
       const reference = await sendRequirementEnquiry(
-        buildDocumentsEnquiryDetails(societyName, contact, answers),
+        buildDocumentsEnquiryDetails(societyName, contact, answers, tentativeBand),
       );
       setSentReference(reference);
     } catch (error) {
@@ -536,6 +565,25 @@ export function FeasibilityDocumentsPage() {
           prepare it. Sending the checklist goes through NIRMAQ&rsquo;s
           enquiry system; the files themselves you email to info@nirmaq.in.
         </p>
+
+        {tentativeBand && (
+          <div
+            className={`experience-tentative-result experience-tentative-result--${tentativeBand.band} no-print`}
+          >
+            <ClipboardCheck size={26} />
+            <span className="experience-eyebrow">
+              Your tentative indication — from the feasibility check
+            </span>
+            <h3>{tentativeBand.bandLabel}</h3>
+            <p>
+              These eight documents are what the team needs to turn this
+              first look into a detailed study. Give what you have below —
+              and when you feel ready, raise the enquiry at the end of this
+              page.{" "}
+              <Link href="/feasibility-check">See the check again →</Link>
+            </p>
+          </div>
+        )}
 
         <div className="experience-tentative-card no-print">
           <label>

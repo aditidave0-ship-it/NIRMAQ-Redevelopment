@@ -116,15 +116,26 @@ export function FeasibilityCheckPage() {
     const age = Number.parseFloat(buildingAge);
     const rate = Number.parseFloat(localityRate);
     setError(null);
-    setResult(
-      assessTentativeFeasibility({
-        plotAreaSqft: plot,
-        homeCount: homes,
-        avgHomeCarpetSqft: avgSize,
-        buildingAgeYears: age,
-        localityRatePerSqft: Number.isFinite(rate) && rate > 0 ? rate : null,
-      }),
-    );
+    const assessed = assessTentativeFeasibility({
+      plotAreaSqft: plot,
+      homeCount: homes,
+      avgHomeCarpetSqft: avgSize,
+      buildingAgeYears: age,
+      localityRatePerSqft: Number.isFinite(rate) && rate > 0 ? rate : null,
+    });
+    setResult(assessed);
+    // Carry only the tentative indication (a display hint, never a
+    // substitute for the enquiry) to the documents dashboard in this
+    // same visit, so the society sees one journey: check → documents →
+    // enquiry. The enquiry itself still goes through the real API.
+    try {
+      window.sessionStorage.setItem(
+        "nirmaq.tentativeBand",
+        JSON.stringify({ band: assessed.band, bandLabel: assessed.bandLabel }),
+      );
+    } catch {
+      // Storage unavailable — the documents page simply shows no banner.
+    }
     setStep(3);
   }
 
@@ -343,11 +354,16 @@ export function FeasibilityCheckPage() {
               </p>
               <Link
                 className="experience-button"
-                href="/contact?subject=Society%20feasibility"
+                href="/societies/documents"
               >
-                Request a full feasibility assessment
+                Next: prepare your feasibility documents
                 <ArrowRight size={16} />
               </Link>
+              <p className="experience-step-note">
+                No documents are asked for yet — the check above is free and
+                takes under a minute. The documents come next, and the
+                enquiry only at the end, when you feel ready.
+              </p>
               <p className="experience-step-note">
                 <button type="button" onClick={handleStartAgain}>
                   Start again with different details →
