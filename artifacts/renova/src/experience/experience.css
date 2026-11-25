@@ -1468,6 +1468,117 @@
   }
 }
 
+/* Feasibility documents dashboard (/societies/documents). */
+.experience-documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 28px;
+}
+.experience-document-card {
+  margin-top: 0;
+}
+.experience-document-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.experience-document-head h2 {
+  margin: 0;
+}
+.experience-document-status {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.experience-document-status--pending {
+  background: #f6ece5;
+  color: #7a4a21;
+}
+.experience-document-status--given {
+  background: #eaf1e2;
+  color: #445a3f;
+}
+.experience-document-status--verified {
+  background: #e8eef7;
+  color: #141d39;
+}
+.experience-view-toggle {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.experience-view-toggle .experience-button {
+  background: transparent !important;
+  color: #14223b !important;
+  border: 1px solid #14223b !important;
+}
+.experience-view-toggle .experience-button[aria-pressed="true"] {
+  background: #14223b !important;
+  color: #fff !important;
+}
+.experience-readiness-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #d9d4c8;
+  overflow: hidden;
+  margin: 0 0 14px;
+}
+.experience-readiness-bar span {
+  display: block;
+  height: 100%;
+  background: #141d39;
+  border-radius: 999px;
+}
+.experience-carpet-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.experience-carpet-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.experience-carpet-row label {
+  margin: 0;
+}
+.experience-text-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #14223b;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.experience-document-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.experience-document-actions .experience-button[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px #f7f2ea,
+    0 0 0 4px #141d39;
+}
+@media (max-width: 600px) {
+  .experience-carpet-row {
+    grid-template-columns: 1fr;
+  }
+  .experience-carpet-row .experience-text-button {
+    justify-self: start;
+  }
+}
+
 /* DCPR 2034 knowledge-centre guide (/knowledge-centre/dcpr-2034). */
 .experience-dcpr-section {
   border-top: 1px solid #e3ddcf;
