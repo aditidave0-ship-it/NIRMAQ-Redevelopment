@@ -1345,6 +1345,18 @@
   width: 100%;
   min-width: 0;
 }
+.experience-tentative-card textarea {
+  border: 1px solid #d6d8dc;
+  border-radius: 9px;
+  padding: 12px;
+  color: #14223b;
+  background: white;
+  font: inherit;
+  font-size: 14px;
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+}
 .experience-tentative-card .experience-button {
   align-self: flex-start;
 }
@@ -1395,14 +1407,14 @@
 }
 
 /* Step picker cards for the public feasibility teaser (/feasibility-check). */
-.experience-scheme-card {
+.experience-option-card {
   text-align: left;
   cursor: pointer;
   font: inherit;
   color: inherit;
   width: 100%;
 }
-.experience-scheme-card[aria-pressed="true"] {
+.experience-option-card[aria-pressed="true"] {
   border-color: #141d39;
   box-shadow: 0 0 0 1px #141d39;
 }

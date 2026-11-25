@@ -31,6 +31,8 @@ function fullAnswers(overrides = {}) {
       { id: "r1", label: "Flat 1", area: "520" },
       { id: "r2", label: "Flat 2", area: "480" },
     ],
+    remarks:
+      "We would like 20% extra area. If possible, we would like the redevelopment under Regulation 33(7)(B).",
     ...overrides,
   };
 }
@@ -225,6 +227,7 @@ test("validateDocumentsSend: an empty checklist and missing contact are all repo
   );
   assert.ok(errors.some((error) => error.includes("housing society")));
   assert.ok(errors.some((error) => error.includes("checklist is empty")));
+  assert.ok(errors.some((error) => error.includes("remarks")));
   assert.ok(errors.some((error) => error.includes("contact name")));
   assert.ok(errors.some((error) => error.includes("phone number")));
   assert.ok(errors.some((error) => error.includes("email address")));
@@ -245,6 +248,15 @@ test("validateDocumentsSend: a full checklist with contact sends cleanly", () =>
     ),
     [],
   );
+  // The remarks are compulsory: a full checklist without them cannot be sent.
+  assert.deepEqual(
+    validateDocumentsSend(
+      "Shanti Sagar CHS",
+      fullContact(),
+      fullAnswers({ remarks: "   " }),
+    ),
+    ["Please write your remarks — tell us anything specific, like a regulation you want or the extra area percentage you have in mind."],
+  );
 });
 
 test("buildDocumentsEnquiryDetails: every item travels in the brief, nothing is dropped", () => {
@@ -264,6 +276,10 @@ test("buildDocumentsEnquiryDetails: every item travels in the brief, nothing is 
   assert.match(payload.message, /38 residential, 2 commercial \(40 members in total\)/);
   assert.match(payload.message, /2 flats listed, total 1,000 sq\.ft/);
   assert.match(payload.message, /Flat 1: 520 sq\.ft/);
+  assert.match(
+    payload.message,
+    /Society's remarks: We would like 20% extra area/,
+  );
   assert.match(payload.message, /ready for feasibility preparation/);
   assert.match(payload.message, /info@nirmaq\.in/);
 });

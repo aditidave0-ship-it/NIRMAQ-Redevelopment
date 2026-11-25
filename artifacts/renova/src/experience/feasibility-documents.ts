@@ -136,6 +136,8 @@ export type DocumentAnswers = {
   member_list: string;
   bifurcation: { residential: string; commercial: string };
   carpet_areas: CarpetRow[];
+  /** Compulsory remarks the society writes at the end, before sending: a specific regulation or percentage they want, or anything else. */
+  remarks: string;
 };
 
 export const EMPTY_DOCUMENT_ANSWERS: DocumentAnswers = {
@@ -147,6 +149,7 @@ export const EMPTY_DOCUMENT_ANSWERS: DocumentAnswers = {
   member_list: "",
   bifurcation: { residential: "", commercial: "" },
   carpet_areas: [],
+  remarks: "",
 };
 
 /** The NIRMAQ team's verdict on one item: not yet checked, verified, or sent back. */
@@ -318,6 +321,10 @@ export function validateDocumentsSend(
     errors.push(
       "Please give at least one document or detail before sending — the checklist is empty.",
     );
+  if (!answers.remarks.trim())
+    errors.push(
+      "Please write your remarks — tell us anything specific, like a regulation you want or the extra area percentage you have in mind.",
+    );
   if (!contact.name.trim())
     errors.push("Please enter a committee contact name.");
   if (!contact.phone.trim())
@@ -403,6 +410,9 @@ export function buildDocumentsEnquiryDetails(
       "Existing carpet area, member by member: not given yet",
     );
   }
+  briefLines.push(
+    `Society's remarks: ${answers.remarks.trim()}`,
+  );
   briefLines.push(
     readiness.missingCompulsory.length === 0
       ? "All six compulsory items are given — ready for feasibility preparation."

@@ -739,6 +739,30 @@ export function FeasibilityDocumentsPage() {
               </label>
             </section>
 
+            <section className="experience-tentative-card">
+              <h2>Anything specific to tell us? (compulsory)</h2>
+              <p>
+                If you want a specific regulation, a percentage of extra
+                area, or anything else — write it here. The NIRMAQ team
+                reads this before the detailed study, and it travels with
+                your enquiry.
+              </p>
+              <label>
+                Your remarks
+                <textarea
+                  rows={4}
+                  placeholder="e.g. We would like 20% extra area. If possible, we would like the redevelopment under Regulation 33(7)(B)."
+                  value={answers.remarks}
+                  onChange={(event) =>
+                    setAnswers((current) => ({
+                      ...current,
+                      remarks: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </section>
+
             {sentReference ? (
               <div className="experience-confirmation" role="status">
                 <CheckCircle2 size={32} />
@@ -844,6 +868,18 @@ export function FeasibilityDocumentsPage() {
                 society here, and marks each document verified as it is
                 checked.
               </p>
+            </section>
+
+            <section className="experience-tentative-card">
+              <h2>Society&apos;s remarks</h2>
+              {answers.remarks.trim() ? (
+                <p>{answers.remarks.trim()}</p>
+              ) : (
+                <p>
+                  Not written yet — the society writes its remarks before
+                  sending.
+                </p>
+              )}
             </section>
 
             <div className="experience-documents-list">

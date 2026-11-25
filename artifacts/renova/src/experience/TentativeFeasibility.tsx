@@ -70,7 +70,7 @@ export function TentativeFeasibility() {
         indication of whether a detailed redevelopment feasibility study is
         worth your committee&rsquo;s time. This is a first look only — the
         detailed study is done by the NIRMAQ team. Prefer to go step by
-        step — building, then scheme and rates?{" "}
+        step — building, then rates and extra area?{" "}
         <Link href="/feasibility-check">
           Try the 3-step feasibility check →
         </Link>{" "}
