@@ -7,6 +7,7 @@ import { DcprGuidePage } from "./experience/DcprGuide";
 import { FeasibilityCheckPage } from "./experience/FeasibilityCheck";
 import { IntakeFormPage } from "./experience/IntakeForm";
 import { FeasibilityDocumentsPage } from "./experience/FeasibilityDocuments";
+import { getCanonicalUrl, getPageMeta } from "./experience/page-meta";
 import { PrivacyPage } from "./experience/PrivacyPages";
 import { sendRequirementEnquiry } from "./experience/requirement-enquiry";
 import {
@@ -4296,6 +4297,17 @@ function Router() {
             : "";
     navigate(`/platform/live${view}`, { replace: true });
   }, [legacyApplication, pathname, navigate]);
+  // Search engines see one served page for every route, so the title,
+  // description and canonical URL are set per route on navigation.
+  useEffect(() => {
+    const meta = getPageMeta(pathname);
+    document.title = meta.title;
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.setAttribute("content", meta.description);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical)
+      canonical.setAttribute("href", getCanonicalUrl(pathname));
+  }, [pathname]);
   if (legacyApplication)
     return <LoadingPage label="Opening your NIRMAQ workspace" />;
   if (pathname === "/") return <MarketingHome />;

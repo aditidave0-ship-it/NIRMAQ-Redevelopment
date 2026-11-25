@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sitemap for nirmaq.in — every public page Google should index.
+     Login-gated pages (/platform/live) and pages that redirect to the
+     workspace (/projects, /join) are deliberately left out, as is the
+     Stage 0 design record (/spike/homepage-stage0). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://nirmaq.in/</loc><lastmod>2026-11-25</lastmod><priority>1.0</priority></url>
+  <url><loc>https://nirmaq.in/societies</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://nirmaq.in/societies/how-it-works</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/developers</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://nirmaq.in/professionals</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/professionals/pmcs</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/professionals/architects</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/professionals/legal</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/professionals/others</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/ecosystem</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/feasibility-check</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://nirmaq.in/societies/intake-form</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/societies/documents</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre/redevelopment-guide</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre/society-process</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre/developer-selection</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre/faqs</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/knowledge-centre/dcpr-2034</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/success-stories</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/about</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/regulations</loc><lastmod>2026-11-25</lastmod><priority>0.7</priority></url>
+  <url><loc>https://nirmaq.in/contact</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://nirmaq.in/privacy</loc><lastmod>2026-11-25</lastmod><priority>0.5</priority></url>
+  <url><loc>https://nirmaq.in/terms</loc><lastmod>2026-11-25</lastmod><priority>0.5</priority></url>
+  <url><loc>https://nirmaq.in/grievance</loc><lastmod>2026-11-25</lastmod><priority>0.5</priority></url>
+</urlset>
