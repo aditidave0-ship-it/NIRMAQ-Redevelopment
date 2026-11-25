@@ -9,52 +9,26 @@ import {
 } from "./tentative-feasibility";
 import type { TentativeFeasibilityResult } from "./tentative-feasibility";
 import { getTeaserSensitivityNotes } from "./feasibility-check";
-import type { ExtraAreaChoice, TeaserScheme } from "./feasibility-check";
+import type { ExtraAreaChoice } from "./feasibility-check";
 
 /**
  * Public teaser feasibility check (/feasibility-check).
  *
  * A 3-step wizard in the uploaded NIRMAQ.IN engine's shape — your
- * building, then scheme & rates, then the outlook — but the outlook
- * itself is only the reviewed public scorer (assessTentativeFeasibility):
- * a qualitative band with plain-language reasons, no rupee figures, no
- * areas, no FSI/TDR numbers, no return estimates. Step 2 only adds
- * plain-language notes about the scheme the visitor picked and the extra
- * area they asked for; it never moves the band. Nothing is submitted,
- * stored or sent anywhere — all state is local. The full assessment,
- * with real numbers, is a NIRMAQ team workflow.
+ * building, then rates and extra area, then the outlook — but the
+ * outlook itself is only the reviewed public scorer
+ * (assessTentativeFeasibility): a qualitative band with plain-language
+ * reasons, no rupee figures, no areas, no FSI/TDR numbers, no return
+ * estimates. Step 2 only adds a plain-language note about the extra
+ * area the visitor asked for; it never moves the band. The society
+ * does not pick a regulation here — which regulation applies is for
+ * the NIRMAQ team to establish in the detailed study, and the society
+ * says what it wants in the compulsory remarks on the documents page.
+ * Nothing is submitted, stored or sent anywhere — all state is local.
+ * The full assessment, with real numbers, is a NIRMAQ team workflow.
  */
 
 type TeaserStep = 1 | 2 | 3;
-
-const SCHEMES: Array<{
-  id: TeaserScheme;
-  code: string;
-  name: string;
-  detail: string;
-}> = [
-  {
-    id: "33_7_B",
-    code: "33(7)(B)",
-    name: "Housing societies over 30 years old",
-    detail:
-      "Existing residential housing societies that are more than 30 years old and do not fall under 33(7) or 33(7)(A). This is the clause most suburban societies actually redevelop under.",
-  },
-  {
-    id: "33_11",
-    code: "33(11)",
-    name: "SRA clubbing",
-    detail:
-      "A route where a scheme is combined with slum rehabilitation tenements. Whether it is open to your building — and what it would cost — is confirmed in the detailed study, not assumed here.",
-  },
-  {
-    id: "not_sure",
-    code: "Not sure yet",
-    name: "Not sure which applies",
-    detail:
-      "That is fine — establishing which regulation applies is the first thing the detailed study does.",
-  },
-];
 
 const EXTRA_AREA_OPTIONS: Array<{ value: ExtraAreaChoice; label: string }> = [
   { value: 0, label: "None" },
@@ -65,7 +39,7 @@ const EXTRA_AREA_OPTIONS: Array<{ value: ExtraAreaChoice; label: string }> = [
 
 const STEP_LABELS: Record<TeaserStep, string> = {
   1: "Step 1 of 3 — Your building",
-  2: "Step 2 of 3 — Scheme & rates",
+  2: "Step 2 of 3 — Rates & extra area",
   3: "Step 3 of 3 — Your tentative outlook",
 };
 
@@ -75,7 +49,6 @@ export function FeasibilityCheckPage() {
   const [homeCount, setHomeCount] = useState("");
   const [avgHomeSize, setAvgHomeSize] = useState("");
   const [buildingAge, setBuildingAge] = useState("");
-  const [scheme, setScheme] = useState<TeaserScheme>("not_sure");
   const [localityRate, setLocalityRate] = useState("");
   const [extraArea, setExtraArea] = useState<ExtraAreaChoice>(0);
   const [error, setError] = useState<string | null>(null);
@@ -134,14 +107,13 @@ export function FeasibilityCheckPage() {
     setHomeCount("");
     setAvgHomeSize("");
     setBuildingAge("");
-    setScheme("not_sure");
     setLocalityRate("");
     setExtraArea(0);
     setError(null);
     setResult(null);
   }
 
-  const notes = getTeaserSensitivityNotes(scheme, extraArea);
+  const notes = getTeaserSensitivityNotes(extraArea);
 
   return (
     <div className="renova-experience">
@@ -155,10 +127,11 @@ export function FeasibilityCheckPage() {
         </span>
         <h1>A first look at your building&rsquo;s redevelopment potential.</h1>
         <p>
-          Three short steps — your building, then the scheme and rates, then
-          your tentative outlook. This is a first look only: it shows an
-          indication, not figures, and never an area, entitlement or return.
-          The detailed study, with real numbers, is done by the NIRMAQ team.
+          Three short steps — your building, then the rates and extra
+          area, then your tentative outlook. This is a first look only: it
+          shows an indication, not figures, and never an area, entitlement
+          or return. The detailed study, with real numbers, is done by the
+          NIRMAQ team.
         </p>
         <p>
           <Link href="/societies">← Back to the societies page</Link>
@@ -230,7 +203,7 @@ export function FeasibilityCheckPage() {
                 </p>
               )}
               <button type="submit" className="experience-button">
-                Next: scheme &amp; rates
+                Next: rates &amp; extra area
                 <ArrowRight size={16} />
               </button>
             </form>
@@ -241,32 +214,7 @@ export function FeasibilityCheckPage() {
               className="experience-tentative-card"
               onSubmit={handleStep2Submit}
             >
-              <h2>Scheme &amp; rates</h2>
-              <p>
-                Which regulation do you think applies to your building? If
-                you are not sure, say so — establishing that is the first
-                thing the detailed study does.
-              </p>
-              <div
-                className="experience-dcpr-grid"
-                role="group"
-                aria-label="Applicable regulation"
-              >
-                {SCHEMES.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="experience-dcpr-card experience-scheme-card"
-                    aria-pressed={scheme === item.id}
-                    onClick={() => setScheme(item.id)}
-                  >
-                    <h3>
-                      Regulation {item.code} — {item.name}
-                    </h3>
-                    <p>{item.detail}</p>
-                  </button>
-                ))}
-              </div>
+              <h2>Rates &amp; extra area</h2>
               <label>
                 Approx. sale rate in your locality (₹ / sq.ft) — optional
                 <input
@@ -290,7 +238,7 @@ export function FeasibilityCheckPage() {
                   <button
                     key={item.value}
                     type="button"
-                    className="experience-dcpr-card experience-scheme-card"
+                    className="experience-dcpr-card experience-option-card"
                     aria-pressed={extraArea === item.value}
                     onClick={() => setExtraArea(item.value)}
                   >
@@ -343,9 +291,9 @@ export function FeasibilityCheckPage() {
               </p>
               <Link
                 className="experience-button"
-                href="/contact?subject=Society%20feasibility"
+                href="/societies/documents"
               >
-                Request a full feasibility assessment
+                Next: prepare your feasibility documents
                 <ArrowRight size={16} />
               </Link>
               <p className="experience-step-note">

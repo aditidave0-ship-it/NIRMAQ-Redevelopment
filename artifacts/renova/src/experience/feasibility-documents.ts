@@ -136,6 +136,8 @@ export type DocumentAnswers = {
   member_list: string;
   bifurcation: { residential: string; commercial: string };
   carpet_areas: CarpetRow[];
+  /** Compulsory remarks the society writes at the end, before sending: a specific regulation or percentage they want, or anything else. */
+  remarks: string;
 };
 
 export const EMPTY_DOCUMENT_ANSWERS: DocumentAnswers = {
@@ -147,7 +149,30 @@ export const EMPTY_DOCUMENT_ANSWERS: DocumentAnswers = {
   member_list: "",
   bifurcation: { residential: "", commercial: "" },
   carpet_areas: [],
+  remarks: "",
 };
+
+/**
+ * Demo society for /societies/documents ("Try a demo society").
+ *
+ * Dharma Nagar CHSL + New Manoj CHSL, Borivali West — a real lead from the
+ * team's Lead Staff app (26 Nov 2026). Only the details the lead sheet
+ * actually has are filled: the Maps link, the CTS number, and the
+ * 129 residential / 6 commercial split — 3 of the 6 compulsory items.
+ * Everything else (property card, member list, carpet areas, DP remark,
+ * conveyance, contact, remarks) stays empty: nothing is invented, and
+ * the send validation blocks sending a demo as a real enquiry.
+ */
+export const DEMO_SOCIETY: { societyName: string; answers: DocumentAnswers } =
+  {
+    societyName: "Dharma Nagar CHSL, New Manoj CHSL",
+    answers: {
+      ...EMPTY_DOCUMENT_ANSWERS,
+      google_location: "https://maps.app.goo.gl/fVnkGTB3KZNJi1eV8",
+      cts_number: "CTS 247/A",
+      bifurcation: { residential: "129", commercial: "6" },
+    },
+  };
 
 /** The NIRMAQ team's verdict on one item: not yet checked, verified, or sent back. */
 export type TeamItemStatus = "awaiting" | "verified" | "needs_again";
@@ -318,6 +343,10 @@ export function validateDocumentsSend(
     errors.push(
       "Please give at least one document or detail before sending — the checklist is empty.",
     );
+  if (!answers.remarks.trim())
+    errors.push(
+      "Please write your remarks — tell us anything specific, like a regulation you want or the extra area percentage you have in mind.",
+    );
   if (!contact.name.trim())
     errors.push("Please enter a committee contact name.");
   if (!contact.phone.trim())
@@ -403,6 +432,9 @@ export function buildDocumentsEnquiryDetails(
       "Existing carpet area, member by member: not given yet",
     );
   }
+  briefLines.push(
+    `Society's remarks: ${answers.remarks.trim()}`,
+  );
   briefLines.push(
     readiness.missingCompulsory.length === 0
       ? "All six compulsory items are given — ready for feasibility preparation."

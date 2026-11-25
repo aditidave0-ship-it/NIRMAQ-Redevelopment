@@ -2,32 +2,27 @@
  * Public teaser feasibility check (/feasibility-check).
  *
  * The teaser is a 3-step wizard built from the uploaded NIRMAQ.IN engine's
- * shape — building first, then scheme & rates, then the outlook — but the
- * outlook itself comes only from the reviewed public scorer in
+ * shape — building first, then rates and extra area, then the outlook —
+ * but the outlook itself comes only from the reviewed public scorer in
  * ./tentative-feasibility (assessTentativeFeasibility). Nothing here
  * computes money, areas, FSI/TDR or returns.
  *
- * What Step 2 adds is context, not scoring: the scheme the visitor picks
- * and the extra area members would like only change the plain-language
- * notes below the band. They never move the band, and no note ever
- * contains a rupee figure, an area, or an FSI number — the detailed study
- * by the NIRMAQ team is the only route to real numbers (repo AGENTS.md:
- * do not fabricate FSI, TDR, costs, returns or regulatory conclusions).
+ * The society does NOT pick a regulation here (Aditi's decision,
+ * 26 Nov 2026): which regulation applies is for the NIRMAQ team to
+ * establish in the detailed study. If the society wants a specific
+ * regulation, they say so in the remarks on the documents page
+ * (/societies/documents), which is compulsory there.
+ *
+ * What Step 2 adds is context, not scoring: the extra area members
+ * would like only changes the plain-language note below the band. It
+ * never moves the band, and no note ever contains a rupee figure, an
+ * area, or an FSI number — the detailed study by the NIRMAQ team is
+ * the only route to real numbers (repo AGENTS.md: do not fabricate
+ * FSI, TDR, costs, returns or regulatory conclusions).
  */
-
-export type TeaserScheme = "33_7_B" | "33_11" | "not_sure";
 
 /** Extra carpet area members would like, as a percentage of existing carpet. 30 means "30% or more". */
 export type ExtraAreaChoice = 0 | 10 | 20 | 30;
-
-const SCHEME_NOTES: Record<TeaserScheme, string> = {
-  "33_7_B":
-    "You picked Regulation 33(7)(B) — the clause most suburban housing societies over 30 years old redevelop under. Which regulation actually applies to your building is confirmed in the detailed study; it shapes what a developer can offer.",
-  "33_11":
-    "You picked Regulation 33(11) — the SRA clubbing route. Whether it is open to your building, and what the clubbing cost would be, is confirmed in the detailed study.",
-  not_sure:
-    "You are not sure which regulation applies — that is exactly what the detailed study establishes first, before any numbers are discussed.",
-};
 
 const EXTRA_AREA_NOTES: Record<ExtraAreaChoice, string> = {
   0: "You entered no extra area for members. The detailed study can model what different levels of extra area would mean for the project.",
@@ -37,13 +32,11 @@ const EXTRA_AREA_NOTES: Record<ExtraAreaChoice, string> = {
 };
 
 /**
- * Plain-language notes for the teaser's result step: one for the scheme
- * the visitor picked, one for the extra area they asked for. Order is
- * fixed (scheme first), and the text never contains figures.
+ * Plain-language note for the teaser's result step: the extra area the
+ * visitor asked for. The text never contains figures.
  */
 export function getTeaserSensitivityNotes(
-  scheme: TeaserScheme,
   extraAreaPct: ExtraAreaChoice,
 ): string[] {
-  return [SCHEME_NOTES[scheme], EXTRA_AREA_NOTES[extraAreaPct]];
+  return [EXTRA_AREA_NOTES[extraAreaPct]];
 }

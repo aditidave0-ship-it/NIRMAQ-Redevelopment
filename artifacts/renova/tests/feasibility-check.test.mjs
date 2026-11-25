@@ -7,7 +7,6 @@ import {
   assessTentativeFeasibility,
 } from "../src/experience/tentative-feasibility.ts";
 
-const SCHEMES = ["33_7_B", "33_11", "not_sure"];
 const EXTRA_AREAS = [0, 10, 20, 30];
 
 /** A note must never carry a figure: no rupees, no crores, no FSI, no areas. */
@@ -19,28 +18,23 @@ function assertFigureFree(text) {
   assert.doesNotMatch(text, /guarantee/i);
 }
 
-test("teaser notes: one scheme note + one extra-area note, both figure-free", () => {
-  for (const scheme of SCHEMES) {
-    for (const extra of EXTRA_AREAS) {
-      const notes = getTeaserSensitivityNotes(scheme, extra);
-      assert.equal(notes.length, 2);
-      for (const note of notes) assertFigureFree(note);
+test("teaser notes: one extra-area note, figure-free, and never a regulation claim", () => {
+  for (const extra of EXTRA_AREAS) {
+    const notes = getTeaserSensitivityNotes(extra);
+    assert.equal(notes.length, 1);
+    for (const note of notes) {
+      assertFigureFree(note);
+      // The society does not pick a regulation in the teaser — no note
+      // may name one or tell the society which applies.
+      assert.doesNotMatch(note, /33\(7\)/);
+      assert.doesNotMatch(note, /33\(11\)/);
     }
   }
 });
 
-test("teaser notes: the scheme note changes with the scheme", () => {
-  const notesByScheme = SCHEMES.map(
-    (scheme) => getTeaserSensitivityNotes(scheme, 0)[0],
-  );
-  assert.equal(new Set(notesByScheme).size, 3);
-  assert.match(notesByScheme[0], /33\(7\)\(B\)/);
-  assert.match(notesByScheme[1], /33\(11\)/);
-});
-
 test("teaser notes: the extra-area note changes with the extra area", () => {
   const notesByExtra = EXTRA_AREAS.map(
-    (extra) => getTeaserSensitivityNotes("not_sure", extra)[1],
+    (extra) => getTeaserSensitivityNotes(extra)[0],
   );
   assert.equal(new Set(notesByExtra).size, 4);
 });
