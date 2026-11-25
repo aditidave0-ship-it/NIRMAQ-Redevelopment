@@ -77,6 +77,10 @@ export function TentativeFeasibility() {
         Already sure you want to proceed?{" "}
         <Link href="/societies/intake-form">
           Fill in the society intake form →
+        </Link>{" "}
+        Preparing your documents?{" "}
+        <Link href="/societies/documents">
+          See the feasibility documents checklist →
         </Link>
       </p>
       <form className="experience-tentative-card" onSubmit={handleSubmit}>

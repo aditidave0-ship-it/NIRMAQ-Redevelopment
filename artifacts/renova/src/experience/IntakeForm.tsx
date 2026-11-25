@@ -228,6 +228,13 @@ export function IntakeFormPage() {
               form gives the team the starting facts, not the answer.
             </p>
             <p className="no-print">
+              Next step: prepare the eight documents NIRMAQ needs for
+              feasibility preparation —{" "}
+              <Link href="/societies/documents">
+                open the feasibility documents dashboard →
+              </Link>
+            </p>
+            <p className="no-print">
               <button
                 type="button"
                 className="experience-button"
