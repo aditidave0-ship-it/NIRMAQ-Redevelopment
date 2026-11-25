@@ -2,6 +2,8 @@ import { RenovaHome } from "./experience/Home";
 import { BRAND_NAME, CONTACT_EMAIL } from "./brand";
 import { ExperienceFooter, ExperienceHeader } from "./experience/Header";
 import { ContactPage } from "./experience/ContactForm";
+import { TentativeFeasibility } from "./experience/TentativeFeasibility";
+import { DcprGuidePage } from "./experience/DcprGuide";
 import { PrivacyPage } from "./experience/PrivacyPages";
 import { sendRequirementEnquiry } from "./experience/requirement-enquiry";
 import {
@@ -113,7 +115,7 @@ function readStoredArray<T>(key: string): T[] {
   }
 }
 
-function Logo() {
+function Logo({ variant = "navy" }: { variant?: "navy" | "ivory" }) {
   return (
     <Link
       href="/"
@@ -121,25 +123,17 @@ function Logo() {
       data-testid="link-home"
       aria-label={`${BRAND_NAME} home`}
     >
-      <svg className="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
-        <path className="brand-renewal-arc" d="M8.5 37.5A19 19 0 1 1 38.8 13" />
-        <path
-          className="brand-r-stem"
-          d="M15 38V14h10.5c6 0 10 3.2 10 8.5S31.5 31 25.5 31H15"
-        />
-        <path className="brand-r-leg" d="m26 30 11 9" />
-        <path className="brand-building" d="M20 38V23l5-3v18" />
-      </svg>
-      <span className="brand-name" aria-hidden="true">
-        {BRAND_NAME.split("").map((letter, index) => (
-          <span
-            key={`${letter}-${index}`}
-            style={{ "--brand-letter": index } as React.CSSProperties}
-          >
-            {letter}
-          </span>
-        ))}
-      </span>
+      <img
+        className="brand-mark-img"
+        src={
+          variant === "ivory"
+            ? "/brand/nirmaq-mark-ivory.png"
+            : "/brand/nirmaq-mark-navy.png"
+        }
+        alt=""
+        aria-hidden="true"
+      />
+      <span className="brand-name">{BRAND_NAME}</span>
     </Link>
   );
 }
@@ -164,7 +158,7 @@ function AppShell({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <aside className={cn("sidebar", mobileOpen && "sidebar-open")}>
         <div className="sidebar-top">
-          <Logo />
+          <Logo variant="ivory" />
           <button
             className="icon-button mobile-close"
             onClick={() => setMobileOpen(false)}
@@ -2543,7 +2537,10 @@ function CinematicVideoIntro({ onFinish }: { onFinish: () => void }) {
 }
 
 function MarketingHome() {
-  const [showIntro, setShowIntro] = useState(true);
+  // Intro video splash disabled (owner decision, 22 Nov 2026): the home
+  // screen now opens directly on the hero background. The intro video
+  // file is retained untouched for future home-screen use.
+  const [showIntro, setShowIntro] = useState(false);
   return (
     <>
       <div className="renova-home-underlay" inert={showIntro}>
@@ -2563,6 +2560,7 @@ type PublicPageData = {
   highlights: Array<{ title: string; detail: string; href?: string }>;
   ctaLabel: string;
   ctaHref: string;
+  showTentativeFeasibility?: boolean;
 };
 
 const publicPageMap: Record<string, PublicPageData> = {
@@ -2703,6 +2701,7 @@ const publicPageMap: Record<string, PublicPageData> = {
     ],
     ctaLabel: "Register your society",
     ctaHref: "/assessment",
+    showTentativeFeasibility: true,
   },
   "/societies/how-it-works": {
     eyebrow: "Society journey",
@@ -2991,10 +2990,10 @@ const publicPageMap: Record<string, PublicPageData> = {
         href: "/knowledge-centre/redevelopment-guide",
       },
       {
-        title: "DCPR",
-        href: "/regulations",
+        title: "DCPR 2034 Guide",
+        href: "/knowledge-centre/dcpr-2034",
         detail:
-          "Understand the planning routes and terms that may shape project potential.",
+          "The regulations that decide what your building can become — 33(7), 33(7)(A), 33(7)(B), 33(9) and more, in plain language.",
       },
       {
         title: "Society Process",
@@ -3014,8 +3013,8 @@ const publicPageMap: Record<string, PublicPageData> = {
         href: "/knowledge-centre/faqs",
       },
     ],
-    ctaLabel: "Open DCPR guidance",
-    ctaHref: "/regulations",
+    ctaLabel: "Read the DCPR 2034 guide",
+    ctaHref: "/knowledge-centre/dcpr-2034",
   },
   "/knowledge-centre/redevelopment-guide": {
     eyebrow: "Redevelopment guide",
@@ -4243,6 +4242,7 @@ function PublicPage({ page }: { page: PublicPageData }) {
             </article>
           ))}
         </div>
+        {page.showTentativeFeasibility && <TentativeFeasibility />}
         <Link className="experience-button" href={page.ctaHref}>
           {page.ctaLabel}
           <ArrowRight size={16} />
@@ -4320,6 +4320,7 @@ function Router() {
   if (pathname === "/terms") return <PrivacyPage page="terms" />;
   if (pathname === "/grievance") return <PrivacyPage page="grievance" />;
   if (pathname === "/knowledge-centre/faqs") return <FaqPage />;
+  if (pathname === "/knowledge-centre/dcpr-2034") return <DcprGuidePage />;
   if (pathname === "/regulations")
     return (
       <div className="renova-experience">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowRight,
@@ -9,10 +9,20 @@ import {
   ShieldCheck,
   UsersRound,
   Layers3,
+  X,
 } from "lucide-react";
 import { ExperienceHeader, ExperienceFooter } from "./Header";
 import { ContactForm } from "./ContactForm";
 import { BRAND_NAME } from "../brand";
+
+/**
+ * Intro video shown by the hero's "Discover How It Works" control.
+ * The current file is the placeholder source; when the owner's updated
+ * NIRMAQ video arrives, swapping it in is a one-line change here. The
+ * file itself is referenced only — never modified (repo protection).
+ */
+const INTRO_VIDEO_SRC = "/renova-intro.mp4";
+
 const steps = [
   {
     title: "Choose Your Role",
@@ -71,6 +81,25 @@ const audiences = [
 ];
 export function RenovaHome() {
   const [step, setStep] = useState(0);
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+
+  // While the intro-video overlay is open: Esc closes it and the page
+  // behind it does not scroll. The <video> element only exists while
+  // the overlay is open, so closing also stops playback, and the
+  // homepage still loads with zero video elements.
+  useEffect(() => {
+    if (!showIntroVideo) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowIntroVideo(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showIntroVideo]);
   return (
     <div className="renova-experience renova-home-reference">
       <ExperienceHeader />
@@ -91,9 +120,13 @@ export function RenovaHome() {
               <Link className="experience-button" href="/societies">
                 Explore Your Redevelopment <ArrowRight size={18} />
               </Link>
-              <a className="experience-discover" href="#how-it-works">
+              <button
+                type="button"
+                className="experience-discover"
+                onClick={() => setShowIntroVideo(true)}
+              >
                 <span aria-hidden="true">▶</span> Discover How It Works
-              </a>
+              </button>
             </div>
             <p className="experience-hero-note">
               A clearer beginning. A connected journey.
@@ -290,6 +323,35 @@ export function RenovaHome() {
         </section>
       </main>
       <ExperienceFooter />
+      {showIntroVideo && (
+        <div
+          className="experience-video-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="How NIRMAQ works — intro video"
+          onClick={() => setShowIntroVideo(false)}
+        >
+          <div
+            className="experience-video-frame"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="experience-video-close"
+              onClick={() => setShowIntroVideo(false)}
+              aria-label="Close video"
+            >
+              <X size={20} />
+            </button>
+            <video
+              src={INTRO_VIDEO_SRC}
+              controls
+              playsInline
+              autoPlay
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

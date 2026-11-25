@@ -459,6 +459,7 @@ button { cursor: pointer; }
 .sidebar-top { display: flex; justify-content: space-between; align-items: center; padding: 0 11px; }
 .brand-lockup { display: inline-flex; align-items: center; gap: 9px; }
 .brand-mark { width: 30px; height: 30px; display: block; overflow: visible; color: currentColor; }
+.brand-mark-img { height: 34px; width: auto; display: block; }
 .brand-renewal-arc, .brand-r-stem, .brand-r-leg { fill: none; stroke-linecap: square; stroke-linejoin: bevel; }
 .brand-renewal-arc { stroke: var(--orange); stroke-width: 2.7; stroke-dasharray: 96; stroke-dashoffset: 96; animation: brand-draw-arc .85s cubic-bezier(.22,.8,.3,1) forwards; }
 .brand-r-stem { stroke: currentColor; stroke-width: 4.4; stroke-dasharray: 92; stroke-dashoffset: 92; animation: brand-draw-r .72s .28s cubic-bezier(.22,.8,.3,1) forwards; }
