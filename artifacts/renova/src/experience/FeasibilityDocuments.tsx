@@ -11,6 +11,7 @@ import {
 import { ExperienceFooter, ExperienceHeader } from "./Header";
 import { sendRequirementEnquiry } from "./requirement-enquiry";
 import {
+  DEMO_SOCIETY,
   DOCUMENT_ITEMS,
   EMPTY_DOCUMENTS_CONTACT,
   EMPTY_DOCUMENT_ANSWERS,
@@ -65,6 +66,8 @@ type SavedState = {
   answers: DocumentAnswers;
   contact: DocumentsContact;
   teamStatuses: TeamStatuses;
+  /** True while the Dharma Nagar example details are loaded. */
+  demoLoaded: boolean;
 };
 
 function loadSavedState(): SavedState {
@@ -73,6 +76,7 @@ function loadSavedState(): SavedState {
     answers: EMPTY_DOCUMENT_ANSWERS,
     contact: EMPTY_DOCUMENTS_CONTACT,
     teamStatuses: EMPTY_TEAM_STATUSES,
+    demoLoaded: false,
   };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -111,6 +115,7 @@ function loadSavedState(): SavedState {
           ? parsed.teamStatuses
           : {}),
       },
+      demoLoaded: parsed.demoLoaded === true,
     };
   } catch {
     return empty;
@@ -125,6 +130,7 @@ export function FeasibilityDocumentsPage() {
   const [teamStatuses, setTeamStatuses] = useState<TeamStatuses>(
     saved.teamStatuses,
   );
+  const [demoLoaded, setDemoLoaded] = useState(saved.demoLoaded);
   const [view, setView] = useState<DashboardView>("society");
   const [sendErrors, setSendErrors] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -136,13 +142,19 @@ export function FeasibilityDocumentsPage() {
     try {
       window.localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ societyName, answers, contact, teamStatuses }),
+        JSON.stringify({
+          societyName,
+          answers,
+          contact,
+          teamStatuses,
+          demoLoaded,
+        }),
       );
     } catch {
       // Saving on this device is a convenience, not the handover — a
       // full or blocked local store must never break the page.
     }
-  }, [societyName, answers, contact, teamStatuses]);
+  }, [societyName, answers, contact, teamStatuses, demoLoaded]);
 
   const readiness = documentsReadiness(answers);
   const team = teamReadiness(answers, teamStatuses);
@@ -152,6 +164,26 @@ export function FeasibilityDocumentsPage() {
 
   function setTextAnswer(id: "google_location" | "cts_number", value: string) {
     setAnswers((current) => ({ ...current, [id]: value }));
+  }
+
+  /**
+   * Load the Dharma Nagar example details. Only offered on an empty
+   * dashboard, so it can never overwrite something the society typed.
+   * The demo fills only the details the lead sheet has — everything
+   * else stays empty, and the send validation still blocks sending
+   * until contact and remarks are filled in for real.
+   */
+  function loadDemo() {
+    setSocietyName(DEMO_SOCIETY.societyName);
+    setAnswers(DEMO_SOCIETY.answers);
+    setDemoLoaded(true);
+  }
+
+  function clearDemo() {
+    setSocietyName("");
+    setAnswers(EMPTY_DOCUMENT_ANSWERS);
+    setContact(EMPTY_DOCUMENTS_CONTACT);
+    setDemoLoaded(false);
   }
 
   function setFileAnswer(id: DocumentId, fileName: string) {
@@ -579,6 +611,42 @@ export function FeasibilityDocumentsPage() {
 
         {view === "society" ? (
           <>
+            {demoLoaded && (
+              <div className="experience-demo-banner no-print" role="status">
+                <p>
+                  <strong>Demo data — </strong>Showing example details for
+                  Dharma Nagar CHSL — replace with your society&apos;s
+                  details.
+                </p>
+                <button
+                  type="button"
+                  className="experience-button"
+                  onClick={clearDemo}
+                >
+                  Clear demo data
+                </button>
+              </div>
+            )}
+
+            {!demoLoaded &&
+              readiness.totalGiven === 0 &&
+              !societyName.trim() && (
+                <div className="experience-tentative-card no-print">
+                  <p>
+                    See how the dashboard looks with a real society&apos;s
+                    details — Dharma Nagar CHSL, Borivali West (example
+                    data).
+                  </p>
+                  <button
+                    type="button"
+                    className="experience-button"
+                    onClick={loadDemo}
+                  >
+                    Try a demo society
+                  </button>
+                </div>
+              )}
+
             <section
               className={`experience-tentative-result ${
                 readiness.ready
