@@ -780,7 +780,7 @@ export function FeasibilityDashboardPage() {
               </form>
             )}
 
-            <p className="no-print">
+            <p className="no-print experience-dashboard-print">
               <button
                 type="button"
                 className="experience-button"

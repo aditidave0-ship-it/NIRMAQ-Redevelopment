@@ -1890,6 +1890,9 @@
   letter-spacing: -0.01em;
   color: #f7f2ea;
 }
+.experience-feasibility-dashboard .experience-dashboard-print {
+  margin-top: 20px;
+}
 .experience-dashboard-list {
   display: flex;
   flex-direction: column;
