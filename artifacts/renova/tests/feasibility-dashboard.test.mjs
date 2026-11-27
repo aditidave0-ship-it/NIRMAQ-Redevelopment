@@ -114,21 +114,20 @@ test("the enquiry brief carries every section and lists file names, never the fi
   const details = buildDashboardEnquiryDetails(
     {
       ...EMPTY_DASHBOARD_ANSWERS,
-      societyName: "Dharma Nagar CHSL, New Manoj CHSL",
-      ctsNumber: "247/A",
+      societyName: "Shanti Sagar CHS",
+      ctsNumber: "123",
       district: "Mumbai Sub",
-      googleLocation: "https://maps.app.goo.gl/fVnkGTB3KZNJi1eV8",
-      resMembers: "129",
-      comMembers: "6",
-      resArea: "33000",
-      comArea: "4714",
+      resMembers: "100",
+      comMembers: "5",
+      resArea: "20000",
+      comArea: "3000",
       contactPerson: "Anita Desai",
-      ctsRecord: "247/A",
+      ctsRecord: "123",
       propertyCard: "Available",
       conveyanceFiles: ["conveyance.pdf"],
       dpRemarkFiles: ["dp-remark.pdf"],
-      plotAreaSqm: "5003.46",
-      roadWidth: "18.3 M",
+      plotAreaSqm: "4000",
+      roadWidth: "12 M",
       additionalInfo: "Please call after 6 pm.",
     },
     {
@@ -138,20 +137,20 @@ test("the enquiry brief carries every section and lists file names, never the fi
       consent: true,
     },
   );
-  assert.equal(details.societyName, "Dharma Nagar CHSL, New Manoj CHSL");
-  assert.equal(details.memberCount, 135);
-  assert.equal(details.plotArea, 53857);
-  assert.match(details.brief ?? "", /Dharma Nagar CHSL/);
-  assert.match(details.brief ?? "", /CTS No\. \/ F\.P\. No\.: 247\/A/);
+  assert.equal(details.societyName, "Shanti Sagar CHS");
+  assert.equal(details.memberCount, 105);
+  assert.equal(details.plotArea, 43056);
+  assert.match(details.brief ?? "", /Shanti Sagar CHS/);
+  assert.match(details.brief ?? "", /CTS No\. \/ F\.P\. No\.: 123/);
   assert.match(details.brief ?? "", /Property Card: Available/);
   assert.match(details.brief ?? "", /conveyance\.pdf/);
   assert.match(details.brief ?? "", /dp-remark\.pdf/);
   assert.match(details.brief ?? "", /info@nirmaq\.in/);
-  assert.match(details.brief ?? "", /37,714 sq\.ft in total/);
+  assert.match(details.brief ?? "", /23,000 sq\.ft in total/);
   assert.match(details.brief ?? "", /Please call after 6 pm\./);
 
   const payload = buildRequirementEnquiryPayload(details);
-  assert.equal(payload.organizationName, "Dharma Nagar CHSL, New Manoj CHSL");
+  assert.equal(payload.organizationName, "Shanti Sagar CHS");
   assert.equal(payload.email, "secretary@society.in");
   assert.equal(payload.consent, true);
 });
