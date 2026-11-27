@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEMO_SOCIETY,
   DOCUMENT_ITEMS,
   EMPTY_DOCUMENT_ANSWERS,
   EMPTY_DOCUMENTS_CONTACT,
@@ -260,53 +259,6 @@ test("validateDocumentsSend: a full checklist with contact sends cleanly", () =>
   );
 });
 
-test("DEMO_SOCIETY: fills only the 3 compulsory items the lead sheet has, nothing else", () => {
-  const { societyName, answers } = DEMO_SOCIETY;
-  assert.equal(societyName, "Dharma Nagar CHSL, New Manoj CHSL");
-  const readiness = documentsReadiness(answers);
-  assert.equal(readiness.compulsoryGiven, 3);
-  assert.equal(readiness.totalGiven, 3);
-  assert.equal(readiness.ready, false);
-  for (const id of ["google_location", "cts_number", "bifurcation"]) {
-    assert.equal(
-      isItemGiven(
-        DOCUMENT_ITEMS.find((item) => item.id === id),
-        answers,
-      ),
-      true,
-    );
-  }
-  // The member list is NOT counted: the counts are known, but the list
-  // file itself is not in hand.
-  for (const id of [
-    "property_card",
-    "member_list",
-    "carpet_areas",
-    "dp_remark",
-    "conveyance",
-  ]) {
-    assert.equal(
-      isItemGiven(
-        DOCUMENT_ITEMS.find((item) => item.id === id),
-        answers,
-      ),
-      false,
-    );
-  }
-  assert.equal(answers.remarks, "");
-  // A demo cannot be sent as a real enquiry: contact and remarks are
-  // empty, so the send validation blocks it before any API call.
-  const errors = validateDocumentsSend(
-    societyName,
-    EMPTY_DOCUMENTS_CONTACT,
-    answers,
-  );
-  assert.ok(errors.some((error) => error.includes("remarks")));
-  assert.ok(errors.some((error) => error.includes("contact name")));
-  assert.ok(errors.some((error) => error.includes("phone number")));
-  assert.ok(errors.some((error) => error.includes("email address")));
-  assert.ok(errors.some((error) => error.includes("consent box")));
-});
 
 test("buildDocumentsEnquiryDetails: every item travels in the brief, nothing is dropped", () => {
   const details = buildDocumentsEnquiryDetails(

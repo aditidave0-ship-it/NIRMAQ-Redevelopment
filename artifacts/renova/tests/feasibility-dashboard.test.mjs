@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DASHBOARD_SECTIONS,
-  DEMO_DASHBOARD,
   EMPTY_DASHBOARD_ANSWERS,
   EMPTY_DASHBOARD_CONTACT,
   buildDashboardEnquiryDetails,
@@ -66,32 +65,30 @@ test("readiness needs basic details and members; documents and notes do not bloc
   );
 });
 
-test("the Dharma Nagar demo fills only what the lead sheet has", () => {
-  const answers = DEMO_DASHBOARD.answers;
-  assert.equal(answers.societyName, "Dharma Nagar CHSL, New Manoj CHSL");
-  assert.equal(answers.ctsNumber, "247/A");
-  assert.equal(answers.district, "Mumbai Sub");
-  assert.equal(membersTotal(answers), 135);
-  assert.equal(carpetTotalSqft(answers), 37714);
-  assert.equal(answers.propertyCard, "");
-  assert.equal(answers.additionalInfo, "");
-  assert.equal(isSectionGiven("basic", answers), true);
-  assert.equal(isSectionGiven("members", answers), true);
-  assert.equal(isSectionGiven("documents", answers), false);
-});
-
-test("send validation blocks an empty record and a demo without a real contact", () => {
+test("send validation blocks an empty record and a filled record without a real contact", () => {
   assert.ok(
     validateDashboardSend(EMPTY_DASHBOARD_ANSWERS, EMPTY_DASHBOARD_CONTACT)
       .length > 0,
   );
-  const demoErrors = validateDashboardSend(DEMO_DASHBOARD.answers, {
-    ...EMPTY_DASHBOARD_CONTACT,
-    consent: true,
-  });
-  assert.ok(demoErrors.some((error) => error.includes("phone")));
-  assert.ok(demoErrors.some((error) => error.includes("email")));
-  assert.ok(demoErrors.some((error) => error.includes("contact person")));
+  const filledErrors = validateDashboardSend(
+    {
+      ...EMPTY_DASHBOARD_ANSWERS,
+      societyName: "Test CHSL",
+      ctsNumber: "123",
+      district: "Mumbai Sub",
+      resMembers: "129",
+      comMembers: "6",
+      resArea: "33000",
+      comArea: "4714",
+    },
+    {
+      ...EMPTY_DASHBOARD_CONTACT,
+      consent: true,
+    },
+  );
+  assert.ok(filledErrors.some((error) => error.includes("phone")));
+  assert.ok(filledErrors.some((error) => error.includes("email")));
+  assert.ok(filledErrors.some((error) => error.includes("contact person")));
 });
 
 test("send validation passes with society, CTS, district, contact and consent", () => {
@@ -116,7 +113,15 @@ test("send validation passes with society, CTS, district, contact and consent", 
 test("the enquiry brief carries every section and lists file names, never the files", () => {
   const details = buildDashboardEnquiryDetails(
     {
-      ...DEMO_DASHBOARD.answers,
+      ...EMPTY_DASHBOARD_ANSWERS,
+      societyName: "Dharma Nagar CHSL, New Manoj CHSL",
+      ctsNumber: "247/A",
+      district: "Mumbai Sub",
+      googleLocation: "https://maps.app.goo.gl/fVnkGTB3KZNJi1eV8",
+      resMembers: "129",
+      comMembers: "6",
+      resArea: "33000",
+      comArea: "4714",
       contactPerson: "Anita Desai",
       ctsRecord: "247/A",
       propertyCard: "Available",

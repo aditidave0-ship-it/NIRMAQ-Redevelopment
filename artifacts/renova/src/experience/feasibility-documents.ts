@@ -152,28 +152,6 @@ export const EMPTY_DOCUMENT_ANSWERS: DocumentAnswers = {
   remarks: "",
 };
 
-/**
- * Demo society for /societies/documents ("Try a demo society").
- *
- * Dharma Nagar CHSL + New Manoj CHSL, Borivali West — a real lead from the
- * team's Lead Staff app (26 Nov 2026). Only the details the lead sheet
- * actually has are filled: the Maps link, the CTS number, and the
- * 129 residential / 6 commercial split — 3 of the 6 compulsory items.
- * Everything else (property card, member list, carpet areas, DP remark,
- * conveyance, contact, remarks) stays empty: nothing is invented, and
- * the send validation blocks sending a demo as a real enquiry.
- */
-export const DEMO_SOCIETY: { societyName: string; answers: DocumentAnswers } =
-  {
-    societyName: "Dharma Nagar CHSL, New Manoj CHSL",
-    answers: {
-      ...EMPTY_DOCUMENT_ANSWERS,
-      google_location: "https://maps.app.goo.gl/fVnkGTB3KZNJi1eV8",
-      cts_number: "CTS 247/A",
-      bifurcation: { residential: "129", commercial: "6" },
-    },
-  };
-
 /** The NIRMAQ team's verdict on one item: not yet checked, verified, or sent back. */
 export type TeamItemStatus = "awaiting" | "verified" | "needs_again";
 
