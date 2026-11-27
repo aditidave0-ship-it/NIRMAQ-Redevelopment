@@ -11,6 +11,7 @@ import {
 import { ExperienceFooter, ExperienceHeader } from "./Header";
 import { sendRequirementEnquiry } from "./requirement-enquiry";
 import {
+  DEMO_DASHBOARD,
   DISTRICT_OPTIONS,
   EMPTY_DASHBOARD_ANSWERS,
   EMPTY_DASHBOARD_CONTACT,
@@ -55,12 +56,15 @@ const FILE_ACCEPT = "image/*,.pdf";
 type SavedState = {
   answers: DashboardAnswers;
   contact: DashboardContact;
+  /** True while the Dharma Nagar example details are loaded. */
+  demoLoaded: boolean;
 };
 
 function loadSavedState(): SavedState {
   const empty: SavedState = {
     answers: EMPTY_DASHBOARD_ANSWERS,
     contact: EMPTY_DASHBOARD_CONTACT,
+    demoLoaded: false,
   };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -86,6 +90,7 @@ function loadSavedState(): SavedState {
           ? parsed.contact
           : {}),
       },
+      demoLoaded: parsed.demoLoaded === true,
     };
   } catch {
     return empty;
@@ -96,6 +101,7 @@ export function FeasibilityDashboardPage() {
   const [saved] = useState(loadSavedState);
   const [answers, setAnswers] = useState<DashboardAnswers>(saved.answers);
   const [contact, setContact] = useState<DashboardContact>(saved.contact);
+  const [demoLoaded, setDemoLoaded] = useState(saved.demoLoaded);
   const [sendErrors, setSendErrors] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sentReference, setSentReference] = useState<string | null>(null);
@@ -105,13 +111,13 @@ export function FeasibilityDashboardPage() {
     try {
       window.localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ answers, contact }),
+        JSON.stringify({ answers, contact, demoLoaded }),
       );
     } catch {
       // Saving on this device is a convenience, not the handover — a
       // full or blocked local store must never break the page.
     }
-  }, [answers, contact]);
+  }, [answers, contact, demoLoaded]);
 
   const readiness = dashboardReadiness(answers);
   const members = membersTotal(answers);
@@ -139,6 +145,24 @@ export function FeasibilityDashboardPage() {
     value: string,
   ) {
     setAnswers((current) => ({ ...current, [field]: value }));
+  }
+
+  /**
+   * Load the Dharma Nagar example details. Only offered on an empty
+   * dashboard, so it can never overwrite something the society typed.
+   * The demo fills only the details the lead sheet has — everything
+   * else stays empty, and the send validation still blocks sending
+   * until a real contact is filled in.
+   */
+  function loadDemo() {
+    setAnswers(DEMO_DASHBOARD.answers);
+    setDemoLoaded(true);
+  }
+
+  function clearDemo() {
+    setAnswers(EMPTY_DASHBOARD_ANSWERS);
+    setContact(EMPTY_DASHBOARD_CONTACT);
+    setDemoLoaded(false);
   }
 
   function handleFiles(
@@ -270,6 +294,42 @@ export function FeasibilityDashboardPage() {
         </p>
 
         <>
+            {demoLoaded && (
+              <div className="experience-demo-banner no-print" role="status">
+                <p>
+                  <strong>Demo data — </strong>Showing example details for
+                  Dharma Nagar CHSL — replace with your society&apos;s
+                  details.
+                </p>
+                <button
+                  type="button"
+                  className="experience-button"
+                  onClick={clearDemo}
+                >
+                  Clear demo data
+                </button>
+              </div>
+            )}
+
+            {!demoLoaded &&
+              readiness.sectionsGiven === 0 &&
+              !answers.societyName.trim() && (
+                <div className="experience-tentative-card no-print">
+                  <p>
+                    See how the dashboard looks with a real society&apos;s
+                    details — Dharma Nagar CHSL, Borivali West (example
+                    data).
+                  </p>
+                  <button
+                    type="button"
+                    className="experience-button"
+                    onClick={loadDemo}
+                  >
+                    Try a demo society
+                  </button>
+                </div>
+              )}
+
             <section
               className={`experience-tentative-result ${
                 readiness.ready
