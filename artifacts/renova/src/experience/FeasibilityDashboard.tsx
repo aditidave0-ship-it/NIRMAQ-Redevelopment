@@ -23,6 +23,7 @@ import {
   isMapsLink,
   membersTotal,
   validateDashboardSend,
+  villagesForTaluka,
 } from "./feasibility-dashboard";
 import type {
   DashboardAnswers,
@@ -116,6 +117,15 @@ export function FeasibilityDashboardPage() {
   const readiness = dashboardReadiness(answers);
   const members = membersTotal(answers);
   const carpetTotal = carpetTotalSqft(answers);
+
+  // The Village dropdown follows the Taluka picked — and a village saved
+  // on this device before the dropdown existed (typed free text) is kept
+  // as a choice rather than silently dropped.
+  const villageOptions = villagesForTaluka(answers.taluka);
+  const villageChoices =
+    answers.village !== "" && !villageOptions.includes(answers.village)
+      ? [answers.village, ...villageOptions]
+      : villageOptions;
 
   function setText(
     field:
@@ -359,9 +369,16 @@ export function FeasibilityDashboardPage() {
                   Taluka
                   <select
                     value={answers.taluka}
-                    onChange={(event) =>
-                      setText("taluka", event.target.value)
-                    }
+                    onChange={(event) => {
+                      // The Village list follows the Taluka — a village
+                      // picked for the old taluka must not carry over.
+                      const nextTaluka = event.target.value;
+                      setAnswers((current) => ({
+                        ...current,
+                        taluka: nextTaluka,
+                        village: "",
+                      }));
+                    }}
                   >
                     <option value="">Select Taluka</option>
                     {TALUKA_OPTIONS.map((option) => (
@@ -373,14 +390,24 @@ export function FeasibilityDashboardPage() {
                 </label>
                 <label>
                   Village
-                  <input
-                    type="text"
-                    placeholder="Enter / select Village"
+                  <select
                     value={answers.village}
+                    disabled={answers.taluka === ""}
                     onChange={(event) =>
                       setText("village", event.target.value)
                     }
-                  />
+                  >
+                    <option value="">
+                      {answers.taluka === ""
+                        ? "Select Taluka first"
+                        : "Select Village"}
+                    </option>
+                    {villageChoices.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label className="experience-dashboard-field--full">
                   Society Address

@@ -54,6 +54,124 @@ export const ROAD_WIDTH_OPTIONS = [
   "Other / To be confirmed",
 ] as const;
 
+/**
+ * Revenue villages per taluka — the Village dropdown follows the Taluka
+ * picked above it (Aditi, 27 Nov 2026: "put the drop-down in the
+ * village").
+ *
+ * The lists are the Mumbai Suburban district's own (mumbaisuburban.gov.in
+ * — village panchayats): 87 revenue villages across Andheri (25),
+ * Borivali (33) and Kurla (29). Mumbai City district publishes no
+ * revenue-village list of its own, so its taluka offers "Mumbai City"
+ * itself. "Other / To be confirmed" follows the Road Width pattern in
+ * this same form, for a society whose village is not on the list.
+ */
+export const VILLAGE_OPTIONS: Record<string, readonly string[]> = {
+  Andheri: [
+    "Ambivali",
+    "Andheri",
+    "Bandivali",
+    "Bandra",
+    "Bapnale",
+    "Bramhanvada",
+    "Chakala",
+    "Danda",
+    "Gundavali",
+    "Ismaliya",
+    "Juhu",
+    "Kolekalyan",
+    "Kondivita",
+    "Madh",
+    "Majas",
+    "Marol",
+    "Mogara",
+    "Mulgaon",
+    "Oshivara",
+    "Parighkhar",
+    "Parjapur",
+    "Sahar",
+    "Varsova",
+    "Vileparle",
+    "Vyaravali",
+  ],
+  Borivali: [
+    "Aare",
+    "Akshe",
+    "Akurli",
+    "Borivali",
+    "Charkop",
+    "Chinchvali",
+    "Dahisar",
+    "Darvali",
+    "Dindoshi",
+    "Eksar",
+    "Eksar Pahadi",
+    "Erangal",
+    "Gorai",
+    "Goregaon",
+    "Gundgaon",
+    "Kalerabad",
+    "Kandivali",
+    "Kanheri",
+    "Kurar",
+    "Magathane",
+    "Malad",
+    "Malvani",
+    "Mandpeshwar",
+    "Manori",
+    "Maroshi",
+    "Marve",
+    "Pahadi Goregaon",
+    "Poisar",
+    "Sai",
+    "Shimpavali",
+    "Tulsi",
+    "Vadhvan",
+    "Valnai",
+  ],
+  Kurla: [
+    "Anik",
+    "Asalphe",
+    "Bhandup",
+    "Borla",
+    "Chandivali",
+    "Chembur",
+    "Devnar",
+    "Ghatkopar",
+    "Hariyali",
+    "Kanjur",
+    "Kirol",
+    "Kopari",
+    "Kurla",
+    "Mahul",
+    "Manbudruk",
+    "Mandale",
+    "Mankhurd",
+    "Maravali",
+    "Mohili",
+    "Mulund",
+    "Nahur",
+    "Paspoli",
+    "Pavai",
+    "Saki",
+    "Tirandaj",
+    "Tungva",
+    "Turbhe",
+    "Vadhavali",
+    "Vikroli",
+  ],
+  "Mumbai City": ["Mumbai City"],
+};
+
+export const VILLAGE_OTHER_OPTION = "Other / To be confirmed";
+
+/** The Village dropdown's options for the taluka picked — empty until one is picked. */
+export function villagesForTaluka(taluka: string): string[] {
+  const villages = VILLAGE_OPTIONS[taluka];
+  if (!villages) return [];
+  return [...villages, VILLAGE_OTHER_OPTION];
+}
+
 export type DashboardAnswers = {
   /** 1. Basic Details — the society's contact person. */
   contactPerson: string;
