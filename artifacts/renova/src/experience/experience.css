@@ -1698,3 +1698,173 @@
     padding-top: 38px;
   }
 }
+
+/* Feasibility Dashboard (/feasibility-dashboard) — the "Society File"
+ * look Aditi approved 27 Nov 2026: open sections separated by hairline
+ * rules (no boxes), serif headings with numbered chapters, small-caps
+ * labels, underline fields, and the totals as one continuous navy band.
+ * Scoped to this page only — every other page is untouched. */
+.experience-feasibility-dashboard h1,
+.experience-feasibility-dashboard h2 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+.experience-feasibility-dashboard h2 {
+  font-size: 22px;
+  color: #141d39;
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e8e1cf;
+  position: relative;
+}
+.experience-feasibility-dashboard h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 52px;
+  height: 2px;
+  background: #a8842c;
+}
+.experience-dashboard-number {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: #a8842c;
+  margin-right: 12px;
+}
+.experience-dashboard-section {
+  padding: 0 0 28px;
+  margin: 36px 0 0;
+  border-bottom: 1px solid #e8e1cf;
+}
+.experience-dashboard-section:last-child {
+  border-bottom: 0;
+}
+.experience-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+}
+.experience-feasibility-dashboard label,
+.experience-dashboard-label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6e675a;
+}
+.experience-dashboard-field--full {
+  grid-column: 1 / -1;
+}
+.experience-feasibility-dashboard input,
+.experience-feasibility-dashboard select,
+.experience-feasibility-dashboard textarea {
+  border: 0;
+  border-bottom: 1px solid #cfc6ae;
+  border-radius: 0;
+  padding: 10px 2px;
+  background: transparent;
+  color: #1e2433;
+  font: 14px Arial, Helvetica, sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  width: 100%;
+  min-width: 0;
+}
+.experience-feasibility-dashboard input:focus,
+.experience-feasibility-dashboard select:focus,
+.experience-feasibility-dashboard textarea:focus {
+  outline: none;
+  border-bottom: 2px solid #141d39;
+  box-shadow: none;
+}
+.experience-feasibility-dashboard textarea {
+  resize: vertical;
+}
+.experience-feasibility-dashboard .experience-tentative-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 28px;
+}
+.experience-feasibility-dashboard
+  .experience-tentative-card
+  .experience-button {
+  align-self: flex-start;
+}
+.experience-feasibility-dashboard .experience-consent {
+  flex-direction: row;
+  align-items: flex-start;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  margin-top: 18px;
+}
+.experience-feasibility-dashboard .experience-consent input {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #cfc6ae;
+  padding: 0;
+}
+.experience-dashboard-filelist {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.experience-dashboard-filelist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border-left: 3px solid #a8842c;
+  border-bottom: 1px solid #e8e1cf;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.experience-dashboard-totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #141d39;
+  color: #f7f2ea;
+  margin-top: 18px;
+}
+.experience-dashboard-totals > div {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.experience-dashboard-totals > div:first-child {
+  border-right: 1px solid rgba(247, 242, 234, 0.3);
+}
+.experience-dashboard-totals span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #f7f2ea;
+}
+.experience-dashboard-totals strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+.experience-dashboard-list {
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 650px) {
+  .experience-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .experience-dashboard-field--full {
+    grid-column: auto;
+  }
+}

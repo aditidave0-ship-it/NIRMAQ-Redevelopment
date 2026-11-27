@@ -234,7 +234,7 @@ export function RenovaHome() {
             </p>
             <Link
               className="experience-button"
-              href="/platform/live?view=feasibility"
+              href="/feasibility-dashboard"
             >
               Get Your Society Feasibility <ArrowRight size={17} />
             </Link>
