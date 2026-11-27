@@ -1701,17 +1701,26 @@
 
 /* Feasibility Dashboard (/feasibility-dashboard) — the "Society File"
  * look Aditi approved 27 Nov 2026: open sections separated by hairline
- * rules (no boxes), serif headings with numbered chapters, small-caps
- * labels, underline fields, and the totals as one continuous navy band.
- * Scoped to this page only — every other page is untouched. */
+ * rules (no boxes), headings in the site's own Playfair Display with
+ * numbered chapters, DM Sans everywhere else, underline fields, and
+ * the totals as one continuous navy band. Scoped to this page only —
+ * every other page is untouched. The page sets the site's font tokens
+ * (DM Sans / Playfair Display / DM Mono from src/index.css) so it
+ * reads as the same website as the homepage — no Georgia, no Arial,
+ * no new font source. */
+.experience-feasibility-dashboard {
+  font-family: var(--app-font-sans);
+}
 .experience-feasibility-dashboard h1,
 .experience-feasibility-dashboard h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--app-font-serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .experience-feasibility-dashboard h2 {
   font-size: 22px;
   color: #141d39;
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid #e8e1cf;
   position: relative;
@@ -1726,15 +1735,16 @@
   background: #a8842c;
 }
 .experience-dashboard-number {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-family: var(--app-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   color: #a8842c;
   margin-right: 12px;
 }
 .experience-dashboard-section {
-  padding: 0 0 28px;
-  margin: 36px 0 0;
+  padding: 0 0 32px;
+  margin: 40px 0 0;
   border-bottom: 1px solid #e8e1cf;
 }
 .experience-dashboard-section:last-child {
@@ -1743,18 +1753,19 @@
 .experience-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 24px;
+  gap: 22px 28px;
 }
 .experience-feasibility-dashboard label,
 .experience-dashboard-label {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+  font-family: var(--app-font-sans);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6e675a;
+  color: #6b6455;
 }
 .experience-dashboard-field--full {
   grid-column: 1 / -1;
@@ -1768,7 +1779,8 @@
   padding: 10px 2px;
   background: transparent;
   color: #1e2433;
-  font: 14px Arial, Helvetica, sans-serif;
+  font-family: var(--app-font-sans);
+  font-size: 14px;
   letter-spacing: normal;
   text-transform: none;
   width: 100%;
@@ -1790,6 +1802,25 @@
   border-radius: 0;
   padding: 0;
   margin-top: 28px;
+}
+/* No boxes on this page — the readiness card and the demo banner are
+ * flat too: transparent, hairline rules, brass left rule. Scoped here
+ * only; the shared classes keep their look everywhere else. */
+.experience-feasibility-dashboard .experience-tentative-result,
+.experience-feasibility-dashboard .experience-demo-banner {
+  background: transparent;
+  border: 0;
+  border-left: 3px solid #a8842c;
+  border-bottom: 1px solid #e8e1cf;
+  border-radius: 0;
+  padding: 16px 0 16px 16px;
+  box-shadow: none;
+}
+.experience-feasibility-dashboard .experience-demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 .experience-feasibility-dashboard
   .experience-tentative-card
@@ -1833,28 +1864,34 @@
   grid-template-columns: 1fr 1fr;
   background: #141d39;
   color: #f7f2ea;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 .experience-dashboard-totals > div {
-  padding: 14px 16px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .experience-dashboard-totals > div:first-child {
   border-right: 1px solid rgba(247, 242, 234, 0.3);
 }
 .experience-dashboard-totals span {
+  font-family: var(--app-font-sans);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #f7f2ea;
+  color: rgba(247, 242, 234, 0.72);
 }
 .experience-dashboard-totals strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 20px;
+  font-family: var(--app-font-serif);
+  font-size: 24px;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #f7f2ea;
+}
+.experience-feasibility-dashboard .experience-dashboard-print {
+  margin-top: 20px;
 }
 .experience-dashboard-list {
   display: flex;

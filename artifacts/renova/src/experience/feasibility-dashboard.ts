@@ -8,11 +8,9 @@
  * 3. Number of Members & Carpet Area Utilized, 4. Additional
  * Information.
  *
- * Two views of the same record — the society fills it in (their own
- * view) and the NIRMAQ team tracks it (team view — the team marks
- * each section verified as it is checked). The team view is a preview
- * of the record on this device, labelled as such: the record itself
- * reaches the team through the enquiry, at info@nirmaq.in.
+ * The society fills it in here. The NIRMAQ team sees the record
+ * through the enquiry, at info@nirmaq.in — there is no team view on
+ * this page (Aditi, 27 Nov 2026).
  *
  * Honesty rules for this page (same as the documents dashboard):
  * - The working record is saved on the visitor's own device only
@@ -152,24 +150,6 @@ export const DEMO_DASHBOARD: { answers: DashboardAnswers } = {
   },
 };
 
-/** The NIRMAQ team's verdict on one section: not yet checked, verified, or sent back. */
-export type TeamSectionStatus = "awaiting" | "verified" | "needs_again";
-
-export type TeamSectionStatuses = Record<DashboardSectionId, TeamSectionStatus>;
-
-export const EMPTY_TEAM_SECTION_STATUSES: TeamSectionStatuses = {
-  basic: "awaiting",
-  documents: "awaiting",
-  members: "awaiting",
-  additional: "awaiting",
-};
-
-export const TEAM_SECTION_STATUS_LABELS: Record<TeamSectionStatus, string> = {
-  awaiting: "Awaiting check",
-  verified: "Verified by NIRMAQ team",
-  needs_again: "Needs another copy",
-};
-
 function parseNonNegative(value: string): number | null {
   const num = Number.parseFloat(value.replace(/,/g, ""));
   return Number.isFinite(num) && num >= 0 ? num : null;
@@ -263,33 +243,6 @@ export function dashboardReadiness(
     missing: DASHBOARD_SECTIONS.filter(
       (section) => !isSectionGiven(section.id, answers),
     ),
-  };
-}
-
-export type TeamDashboardReadiness = {
-  verifiedSections: number;
-  sectionsTotal: number;
-  blocking: DashboardSection[];
-};
-
-/**
- * The team's view of the same record: sections verified so far, and
- * what still blocks the detailed study. Additional Information never
- * blocks — it is a note, not a requirement.
- */
-export function teamDashboardReadiness(
-  answers: DashboardAnswers,
-  teamStatuses: TeamSectionStatuses,
-): TeamDashboardReadiness {
-  const blocking = DASHBOARD_SECTIONS.filter(
-    (section) =>
-      section.id !== "additional" &&
-      !(isSectionGiven(section.id, answers) && teamStatuses[section.id] === "verified"),
-  );
-  return {
-    verifiedSections: 3 - blocking.length,
-    sectionsTotal: 3,
-    blocking,
   };
 }
 
