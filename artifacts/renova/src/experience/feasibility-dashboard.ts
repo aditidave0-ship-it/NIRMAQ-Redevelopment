@@ -125,31 +125,6 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
   { id: "additional", number: "04", title: "Additional Information" },
 ];
 
-/**
- * Demo society for /feasibility-dashboard ("Try a demo society").
- *
- * Dharma Nagar CHSL + New Manoj CHSL, Borivali West — a real lead from
- * the team's Lead Staff app (26 Nov 2026). Only the details the lead
- * sheet actually has are filled: the society name, the CTS number, the
- * district, the Maps link, and the 129 residential / 6 commercial
- * split with their carpet areas. Everything else stays empty: nothing
- * is invented, and the send validation still blocks sending a demo
- * as a real enquiry until a real contact is filled in.
- */
-export const DEMO_DASHBOARD: { answers: DashboardAnswers } = {
-  answers: {
-    ...EMPTY_DASHBOARD_ANSWERS,
-    societyName: "Dharma Nagar CHSL, New Manoj CHSL",
-    ctsNumber: "247/A",
-    district: "Mumbai Sub",
-    googleLocation: "https://maps.app.goo.gl/fVnkGTB3KZNJi1eV8",
-    resMembers: "129",
-    comMembers: "6",
-    resArea: "33000",
-    comArea: "4714",
-  },
-};
-
 function parseNonNegative(value: string): number | null {
   const num = Number.parseFloat(value.replace(/,/g, ""));
   return Number.isFinite(num) && num >= 0 ? num : null;
