@@ -7,6 +7,7 @@ import { DcprGuidePage } from "./experience/DcprGuide";
 import { FeasibilityCheckPage } from "./experience/FeasibilityCheck";
 import { IntakeFormPage } from "./experience/IntakeForm";
 import { FeasibilityDocumentsPage } from "./experience/FeasibilityDocuments";
+import { FeasibilityDashboardPage } from "./experience/FeasibilityDashboard";
 import { getCanonicalUrl, getPageMeta } from "./experience/page-meta";
 import { PrivacyPage } from "./experience/PrivacyPages";
 import { sendRequirementEnquiry } from "./experience/requirement-enquiry";
@@ -4341,6 +4342,8 @@ function Router() {
   if (pathname === "/societies/intake-form") return <IntakeFormPage />;
   if (pathname === "/societies/documents")
     return <FeasibilityDocumentsPage />;
+  if (pathname === "/feasibility-dashboard")
+    return <FeasibilityDashboardPage />;
   if (pathname === "/regulations")
     return (
       <div className="renova-experience">
