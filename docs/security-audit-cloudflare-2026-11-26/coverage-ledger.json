@@ -1,0 +1,2456 @@
+[
+ {
+  "coverage_id": ".gitignore%23secret%20files::git%20history%23secret%20sweep::repo::Obvious%20things",
+  "canonical_refs": {
+   "surface": ".gitignore#secret files",
+   "boundary": "git history#secret sweep",
+   "subsystem": "repo",
+   "attack_class": "Obvious things"
+  },
+  "surface": ".gitignore#secret files",
+  "boundary": "git history#secret sweep",
+  "subsystem": "repo",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   ".gitignore",
+   "pnpm-lock.yaml"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "CLOUD-AND-DEPLOYMENT.md#Core discipline",
+   "CLOUD-AND-DEPLOYMENT.md#Configuration and secret lifecycle attack classes",
+   "CLOUD-AND-DEPLOYMENT.md#Universal moves",
+   "CLOUD-AND-DEPLOYMENT.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   ".gitignore"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     ".gitignore"
+    ],
+    "invariant": "No live secret is committed and .env files are ignored",
+    "method": "source",
+    "result": "History sweep found no live secrets (rejected: h-live-secrets-in-git); .gitignore has no .env rule (confirmed informational: gitignore-missing-dotenv).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "gitignore-missing-dotenv",
+   "h-live-secrets-in-git"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Flib%2Femail.ts%23email%20templates::artifacts%2Fapi-server%2Fsrc%2Flib%2Femail.ts%23escapeHtml::artifacts%2Fapi-server::Injection",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/lib/email.ts#email templates",
+   "boundary": "artifacts/api-server/src/lib/email.ts#escapeHtml",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Injection"
+  },
+  "surface": "artifacts/api-server/src/lib/email.ts#email templates",
+  "boundary": "artifacts/api-server/src/lib/email.ts#escapeHtml",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Injection",
+  "starting_paths": [
+   "artifacts/api-server/src/lib/email.ts",
+   "artifacts/api-server/src/lib/enquiry-email-jobs.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/email.ts",
+   "artifacts/renova/src/components/ui/chart.tsx"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/email.ts",
+     "artifacts/renova/src/components/ui/chart.tsx"
+    ],
+    "invariant": "User values are escaped before HTML rendering",
+    "method": "source",
+    "result": "escapeHtml escapes user values in email; the only dangerouslySetInnerHTML uses developer-supplied theme config; stored XSS disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-stored-xss-user-content"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Flib%2Fsession.ts%23password%20hashing::artifacts%2Fapi-server%2Fsrc%2Flib%2Fsession.ts%23hashPassword::artifacts%2Fapi-server::Cryptography%20and%20secrets",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/lib/session.ts#password hashing",
+   "boundary": "artifacts/api-server/src/lib/session.ts#hashPassword",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Cryptography and secrets"
+  },
+  "surface": "artifacts/api-server/src/lib/session.ts#password hashing",
+  "boundary": "artifacts/api-server/src/lib/session.ts#hashPassword",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Cryptography and secrets",
+  "starting_paths": [
+   "artifacts/api-server/src/lib/session.ts",
+   "artifacts/api-server/src/lib/auth-tokens.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/session.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/session.ts"
+    ],
+    "invariant": "Passwords are stored as salted scrypt hashes",
+    "method": "source",
+    "result": "scrypt + 16-byte salt + timingSafeEqual verified; Node defaults (N=16384, r=8, p=1) are the recommended values; both claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-passwords-plaintext",
+   "h-scrypt-params-unpinned"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Frenova-app.ts%23CORS%20and%20security%20headers::artifacts%2Fapi-server%2Fsrc%2Frenova-app.ts%23cors::artifacts%2Fapi-server::Obvious%20things",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/renova-app.ts#CORS and security headers",
+   "boundary": "artifacts/api-server/src/renova-app.ts#cors",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Obvious things"
+  },
+  "surface": "artifacts/api-server/src/renova-app.ts#CORS and security headers",
+  "boundary": "artifacts/api-server/src/renova-app.ts#cors",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/renova/vercel.json",
+   "artifacts/renova/index.html"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#Cross-origin messaging and network attack classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/renova/index.html",
+   "artifacts/renova/vercel.json"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/renova-app.ts",
+     "artifacts/renova/index.html",
+     "artifacts/renova/vercel.json"
+    ],
+    "invariant": "Security headers are set and CORS trusts only approved origins",
+    "method": "source",
+    "result": "No security headers anywhere in either host (confirmed low); CORS is fail-closed in code but the production CORS_ORIGINS value is unknown (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "cors-origins-production-value",
+   "missing-security-headers"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Frenova-app.ts%23body%20parsers::pnpm-lock.yaml%23body-parser%402.3.0::artifacts%2Fapi-server::Obvious%20things",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/renova-app.ts#body parsers",
+   "boundary": "pnpm-lock.yaml#body-parser@2.3.0",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Obvious things"
+  },
+  "surface": "artifacts/api-server/src/renova-app.ts#body parsers",
+  "boundary": "pnpm-lock.yaml#body-parser@2.3.0",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "pnpm-lock.yaml",
+   "artifacts/api-server/package.json"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Dependency and build-input attack classes",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Computational amplification attack classes",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "pnpm-lock.yaml"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/renova-app.ts",
+     "pnpm-lock.yaml"
+    ],
+    "invariant": "Request parsing cannot crash the process",
+    "method": "source",
+    "result": "body-parser 2.3.0 CVE-2026-111181 confirmed medium (official Express advisory + exact version match); Node Brotli CVE and the API process model need deployment validation.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "api-process-model-unknown",
+   "body-parser-cve-2026-111181-dos",
+   "node-brotli-cve-2026-111497-runtime"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Frenova-app.ts%23trust%20proxy::artifacts%2Fapi-server%2Fsrc%2Frenova-app.ts%23trust%20proxy::artifacts%2Fapi-server::Business%20logic",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/renova-app.ts#trust proxy",
+   "boundary": "artifacts/api-server/src/renova-app.ts#trust proxy",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Business logic"
+  },
+  "surface": "artifacts/api-server/src/renova-app.ts#trust proxy",
+  "boundary": "artifacts/api-server/src/renova-app.ts#trust proxy",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/renova/vercel.json"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Quota and scheduling attack classes",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/api-server/src/routes/enquiries.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-rate-limit.ts",
+     "artifacts/api-server/src/renova-app.ts",
+     "artifacts/api-server/src/routes/enquiries.ts"
+    ],
+    "invariant": "request.ip is trustworthy for rate-limit keys",
+    "method": "source",
+    "result": "trust proxy is 1; whether Vercel overwrites or appends X-Forwarded-For is unknown (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "trust-proxy-xff-rate-limit-spoofing"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%23Zod%20and%20Drizzle%20queries::lib%2Fapi-zod%2Fsrc%2Fgenerated%2Fapi.ts%23schemas::artifacts%2Fapi-server::Injection",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes#Zod and Drizzle queries",
+   "boundary": "lib/api-zod/src/generated/api.ts#schemas",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Injection"
+  },
+  "surface": "artifacts/api-server/src/routes#Zod and Drizzle queries",
+  "boundary": "lib/api-zod/src/generated/api.ts#schemas",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Injection",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/opportunities.ts",
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "artifacts/api-server/src/routes/privacy.ts",
+   "lib/api-zod/src/generated/api.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+  "selected_companion_blocks": [],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "artifacts/api-server/src/routes/opportunities.ts",
+   "artifacts/api-server/src/routes/sandbox-billing.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/auth.ts",
+     "artifacts/api-server/src/routes/enquiries.ts",
+     "artifacts/api-server/src/routes/opportunities.ts",
+     "artifacts/api-server/src/routes/sandbox-billing.ts"
+    ],
+    "invariant": "All database input is validated and parameterised",
+    "method": "source",
+    "result": "Zod parse on every DB route; Drizzle parameterised; only raw sql() is advisory locks/counters with bound values; both claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-negative-quantity",
+   "h-sql-injection-unvalidated-input"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23POST%20%2Fauth%2Flogin::artifacts%2Fapi-server%2Fsrc%2Flib%2Fsession.ts%23createSession::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/login",
+   "boundary": "artifacts/api-server/src/lib/session.ts#createSession",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/login",
+  "boundary": "artifacts/api-server/src/lib/session.ts#createSession",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/lib/session.ts",
+   "artifacts/api-server/src/lib/auth-rate-limit.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/api-server/src/lib/auth-tokens.ts",
+   "artifacts/api-server/src/routes/auth.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-rate-limit.ts",
+     "artifacts/api-server/src/lib/auth-tokens.ts",
+     "artifacts/api-server/src/routes/auth.ts"
+    ],
+    "invariant": "Login codes cannot be guessed within their lifetime",
+    "method": "source",
+    "result": "5 attempts per OTP token, 10-minute expiry, single-use, login 10/15 min per account; brute force disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-otp-brute-force"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23POST%20%2Fauth%2Fregister::artifacts%2Fapi-server%2Fsrc%2Flib%2Frole-policy.ts%23registrationIdentity::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/register",
+   "boundary": "artifacts/api-server/src/lib/role-policy.ts#registrationIdentity",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/register",
+  "boundary": "artifacts/api-server/src/lib/role-policy.ts#registrationIdentity",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/lib/role-policy.ts",
+   "artifacts/api-server/src/lib/registration-release.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/role-policy.test.ts",
+   "artifacts/api-server/src/lib/role-policy.ts",
+   "artifacts/api-server/src/routes/auth.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/role-policy.test.ts",
+     "artifacts/api-server/src/lib/role-policy.ts",
+     "artifacts/api-server/src/routes/auth.ts"
+    ],
+    "invariant": "Registration cannot create an admin",
+    "method": "source",
+    "result": "Role derived server-side from a fixed list excluding ADMIN; a test pins it; claim disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-registration-creates-admin"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23POST%20%2Fauth%2Freset-password::artifacts%2Fapi-server%2Fsrc%2Flib%2Fauth-tokens.ts%23issueAuthToken::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/reset-password",
+   "boundary": "artifacts/api-server/src/lib/auth-tokens.ts#issueAuthToken",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/reset-password",
+  "boundary": "artifacts/api-server/src/lib/auth-tokens.ts#issueAuthToken",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/lib/auth-tokens.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-tokens.ts",
+   "artifacts/api-server/src/routes/auth.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-tokens.ts",
+     "artifacts/api-server/src/routes/auth.ts"
+    ],
+    "invariant": "Reset tokens cannot be guessed",
+    "method": "source",
+    "result": "No rate limit on the route, but tokens are 32-byte random and single-use; brute force disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-reset-password-no-rate-limit"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23POST%20%2Fauth%2Fverify-email::artifacts%2Fapi-server%2Fsrc%2Flib%2Fauth-tokens.ts%23verifyEmailOtpHash::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/verify-email",
+   "boundary": "artifacts/api-server/src/lib/auth-tokens.ts#verifyEmailOtpHash",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#POST /auth/verify-email",
+  "boundary": "artifacts/api-server/src/lib/auth-tokens.ts#verifyEmailOtpHash",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/lib/auth-tokens.ts",
+   "artifacts/api-server/src/lib/auth-rate-limit.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/api-server/src/lib/auth-tokens.ts",
+   "artifacts/api-server/src/routes/auth.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-rate-limit.ts",
+     "artifacts/api-server/src/lib/auth-tokens.ts",
+     "artifacts/api-server/src/routes/auth.ts"
+    ],
+    "invariant": "OTP verification is single-use and race-safe",
+    "method": "source",
+    "result": "5 attempts, 10-minute expiry, conditional single-use consume; brute-force and race claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-otp-brute-force",
+   "h-race-condition-check-then-act"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23auth%20rate%20limits::artifacts%2Fapi-server%2Fsrc%2Flib%2Fauth-rate-limit.ts%23enforceAuthRateLimit::artifacts%2Fapi-server::Business%20logic",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#auth rate limits",
+   "boundary": "artifacts/api-server/src/lib/auth-rate-limit.ts#enforceAuthRateLimit",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Business logic"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#auth rate limits",
+  "boundary": "artifacts/api-server/src/lib/auth-rate-limit.ts#enforceAuthRateLimit",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/routes/privacy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Quota and scheduling attack classes",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-rate-limit.ts",
+   "artifacts/api-server/src/routes/auth.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-rate-limit.ts",
+     "artifacts/api-server/src/routes/auth.ts"
+    ],
+    "invariant": "Auth endpoints are rate-limited per account and per IP",
+    "method": "source",
+    "result": "LOGIN 10/15 min, VERIFY_EMAIL 10/10 min, PRIVACY_VERIFY 10/10 min verified; OTP guessing disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-otp-brute-force"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fauth.ts%23first%20admin%20provisioning::artifacts%2Fapi-server%2Fsrc%2Flib%2Fregistration-release.ts%23isPublicRegistrationOpen::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/auth.ts#first admin provisioning",
+   "boundary": "artifacts/api-server/src/lib/registration-release.ts#isPublicRegistrationOpen",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/auth.ts#first admin provisioning",
+  "boundary": "artifacts/api-server/src/lib/registration-release.ts#isPublicRegistrationOpen",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/auth.ts",
+   "artifacts/api-server/src/lib/role-policy.ts",
+   "artifacts/api-server/src/lib/registration-release.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "CLOUD-AND-DEPLOYMENT.md#Core discipline",
+   "CLOUD-AND-DEPLOYMENT.md#Workload identity and IAM attack classes",
+   "CLOUD-AND-DEPLOYMENT.md#Universal moves",
+   "CLOUD-AND-DEPLOYMENT.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/registration-release.ts",
+   "artifacts/api-server/src/lib/role-policy.test.ts",
+   "artifacts/api-server/src/lib/role-policy.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/registration-release.ts",
+     "artifacts/api-server/src/lib/role-policy.test.ts",
+     "artifacts/api-server/src/lib/role-policy.ts"
+    ],
+    "invariant": "There is an approved way to create the first admin",
+    "method": "source",
+    "result": "No provisioning path exists; the only admin-creation evidence is a test fixture that inserts directly into the database; needs an owner decision (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "first-admin-provisioning-missing"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fenquiries.ts%23GET%20%2Fadmin%2Fenquiries::artifacts%2Fapi-server%2Fsrc%2Flib%2Fsession.ts%23requireRole::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/enquiries.ts#GET /admin/enquiries",
+   "boundary": "artifacts/api-server/src/lib/session.ts#requireRole",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/enquiries.ts#GET /admin/enquiries",
+  "boundary": "artifacts/api-server/src/lib/session.ts#requireRole",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "artifacts/api-server/src/lib/session.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Tenant and object-isolation attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/email-jobs.ts",
+   "artifacts/api-server/src/routes/enquiries.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/email-jobs.ts",
+     "artifacts/api-server/src/routes/enquiries.ts"
+    ],
+    "invariant": "Admin routes require an admin session and org scoping holds",
+    "method": "source",
+    "result": "Every /admin route has requireAuth + requireRole ADMIN; the assignee must be an active ADMIN; claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-admin-routes-no-auth",
+   "h-idor-cross-org"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fenquiries.ts%23POST%20%2Fenquiries::artifacts%2Fapi-server%2Fsrc%2Froutes%2Fenquiries.ts%23requestFingerprint::artifacts%2Fapi-server::Feature%20abuse%20and%20data%20leakage",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/enquiries.ts#POST /enquiries",
+   "boundary": "artifacts/api-server/src/routes/enquiries.ts#requestFingerprint",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Feature abuse and data leakage"
+  },
+  "surface": "artifacts/api-server/src/routes/enquiries.ts#POST /enquiries",
+  "boundary": "artifacts/api-server/src/routes/enquiries.ts#requestFingerprint",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Feature abuse and data leakage",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "artifacts/api-server/src/lib/consent-policy.ts",
+   "artifacts/api-server/src/lib/enquiry-email-jobs.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+  "selected_companion_blocks": [
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Quota and scheduling attack classes",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/email.ts",
+   "artifacts/api-server/src/routes/enquiries.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/email.ts",
+     "artifacts/api-server/src/routes/enquiries.ts"
+    ],
+    "invariant": "Unauthenticated submissions cannot be abused at scale",
+    "method": "source",
+    "result": "Fingerprint (IP+email) 5/hour is defeated by rotating both (confirmed low); dedup race is guarded by an advisory lock; X-Forwarded-For trust affects the IP key (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "enquiry-rate-limit-ip-rotation",
+   "h-race-condition-check-then-act",
+   "trust-proxy-xff-rate-limit-spoofing"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Ffeasibility.ts%23GET%20%2Ffeasibility%2F%3Aid::artifacts%2Fapi-server%2Fsrc%2Flib%2Ffeasibility-policy.ts%23assertFeasibilityOwnership::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/feasibility.ts#GET /feasibility/:id",
+   "boundary": "artifacts/api-server/src/lib/feasibility-policy.ts#assertFeasibilityOwnership",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/feasibility.ts#GET /feasibility/:id",
+  "boundary": "artifacts/api-server/src/lib/feasibility-policy.ts#assertFeasibilityOwnership",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/feasibility.ts",
+   "artifacts/api-server/src/lib/feasibility-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Tenant and object-isolation attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/feasibility-policy.ts",
+   "artifacts/api-server/src/routes/feasibility.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/feasibility-policy.ts",
+     "artifacts/api-server/src/routes/feasibility.ts"
+    ],
+    "invariant": "A user cannot read another organisation's feasibility record",
+    "method": "source",
+    "result": "assertFeasibilityOwnership returns 404 on mismatch; IDOR disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-idor-cross-org"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Ffeasibility.ts%23POST%20%2Ffeasibility%2F%3Aid%2Fdocuments::artifacts%2Fapi-server%2Fsrc%2Flib%2Ffeasibility-policy.ts%23documentContentMatchesType::artifacts%2Fapi-server::Resource%20and%20file%20handling",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/feasibility.ts#POST /feasibility/:id/documents",
+   "boundary": "artifacts/api-server/src/lib/feasibility-policy.ts#documentContentMatchesType",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Resource and file handling"
+  },
+  "surface": "artifacts/api-server/src/routes/feasibility.ts#POST /feasibility/:id/documents",
+  "boundary": "artifacts/api-server/src/lib/feasibility-policy.ts#documentContentMatchesType",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Resource and file handling",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/feasibility.ts",
+   "artifacts/api-server/src/lib/feasibility-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Tenant and object-isolation attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Resource accumulation attack classes",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+   "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/feasibility-policy.ts",
+   "artifacts/api-server/src/routes/feasibility.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/feasibility-policy.ts",
+     "artifacts/api-server/src/routes/feasibility.ts"
+    ],
+    "invariant": "Uploads are safe and bounded",
+    "method": "source",
+    "result": "Allowlist + magic bytes + 10 MB + private blob verified (upload claim disproved); no per-user/per-request quota (confirmed low).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "feasibility-no-upload-quota",
+   "h-upload-validation"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fhealth.ts%23GET%20%2Freadyz::artifacts%2Fapi-server%2Fsrc%2Froutes%2Fhealth.ts%23requiredSchemaColumns::artifacts%2Fapi-server::Obvious%20things",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/health.ts#GET /readyz",
+   "boundary": "artifacts/api-server/src/routes/health.ts#requiredSchemaColumns",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Obvious things"
+  },
+  "surface": "artifacts/api-server/src/routes/health.ts#GET /readyz",
+  "boundary": "artifacts/api-server/src/routes/health.ts#requiredSchemaColumns",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/health.ts",
+   "artifacts/api-server/src/renova-app.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/health.ts",
+   "docs/production-controlled-test-preflight.md",
+   "lib/db/drizzle/meta/_journal.json"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/health.ts",
+     "docs/production-controlled-test-preflight.md",
+     "lib/db/drizzle/meta/_journal.json"
+    ],
+    "invariant": "The production database has verified backups and a verified migration baseline",
+    "method": "source",
+    "result": "readyz still 503; baseline last verified 0000-0002; no backup configuration in the repo; needs Neon console validation.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "neon-backup-recovery-unverified"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fopportunities.ts%23GET%20%2Fopportunities::artifacts%2Fapi-server%2Fsrc%2Froutes%2Fopportunities.ts%23organizationId%20scope::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/opportunities.ts#GET /opportunities",
+   "boundary": "artifacts/api-server/src/routes/opportunities.ts#organizationId scope",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/opportunities.ts#GET /opportunities",
+  "boundary": "artifacts/api-server/src/routes/opportunities.ts#organizationId scope",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/opportunities.ts",
+   "artifacts/api-server/src/lib/opportunity-policy.ts",
+   "artifacts/api-server/src/lib/profile-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Tenant and object-isolation attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/opportunities.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/opportunities.ts"
+    ],
+    "invariant": "Opportunity search returns only what the caller may see",
+    "method": "source",
+    "result": "Org-scoped reads verified; an ilike % returns only the already-public PUBLISHED set; both claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-idor-cross-org",
+   "h-opportunities-ilike-wildcard"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fprivacy.ts%23GET%20%2Fadmin%2Fprivacy-requests::artifacts%2Fapi-server%2Fsrc%2Flib%2Fprivacy-policy.ts%23assertPrivacyStatusTransition::artifacts%2Fapi-server::Business%20logic",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/privacy.ts#GET /admin/privacy-requests",
+   "boundary": "artifacts/api-server/src/lib/privacy-policy.ts#assertPrivacyStatusTransition",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Business logic"
+  },
+  "surface": "artifacts/api-server/src/routes/privacy.ts#GET /admin/privacy-requests",
+  "boundary": "artifacts/api-server/src/lib/privacy-policy.ts#assertPrivacyStatusTransition",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/privacy.ts",
+   "artifacts/api-server/src/lib/privacy-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Deletion, revocation, and lifecycle attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/privacy-policy.ts",
+   "artifacts/api-server/src/routes/privacy.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/privacy-policy.ts",
+     "artifacts/api-server/src/routes/privacy.ts"
+    ],
+    "invariant": "Privacy admin routes are admin-only and transitions are enforced",
+    "method": "source",
+    "result": "Admin role gates verified; assertPrivacyStatusTransition enforces transitions; holds block fulfilment; IDOR disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-idor-cross-org"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fprivacy.ts%23POST%20%2Fprivacy%2Frequests::artifacts%2Fapi-server%2Fsrc%2Flib%2Fprivacy-tokens.ts%23verifyPrivacyTokenHash::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/privacy.ts#POST /privacy/requests",
+   "boundary": "artifacts/api-server/src/lib/privacy-tokens.ts#verifyPrivacyTokenHash",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/privacy.ts#POST /privacy/requests",
+  "boundary": "artifacts/api-server/src/lib/privacy-tokens.ts#verifyPrivacyTokenHash",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/privacy.ts",
+   "artifacts/api-server/src/lib/privacy-tokens.ts",
+   "artifacts/api-server/src/lib/privacy-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Deletion, revocation, and lifecycle attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/auth-tokens.ts",
+   "artifacts/api-server/src/lib/privacy-tokens.ts",
+   "artifacts/api-server/src/routes/privacy.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/auth-tokens.ts",
+     "artifacts/api-server/src/lib/privacy-tokens.ts",
+     "artifacts/api-server/src/routes/privacy.ts"
+    ],
+    "invariant": "Privacy request tokens cannot be guessed or replayed",
+    "method": "source",
+    "result": "Status token is 32-byte random; verify is a conditional single-use consume; both claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-privacy-status-no-rate-limit",
+   "h-race-condition-check-then-act"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fprivacy.ts%23consent%20ledger::artifacts%2Fapi-server%2Fsrc%2Flib%2Fconsent-policy.ts%23consentEventForEnquiry::artifacts%2Fapi-server::Business%20logic",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/privacy.ts#consent ledger",
+   "boundary": "artifacts/api-server/src/lib/consent-policy.ts#consentEventForEnquiry",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Business logic"
+  },
+  "surface": "artifacts/api-server/src/routes/privacy.ts#consent ledger",
+  "boundary": "artifacts/api-server/src/lib/consent-policy.ts#consentEventForEnquiry",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "artifacts/api-server/src/lib/consent-policy.ts",
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "docs/phase-b-privacy-design.md"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Deletion, revocation, and lifecycle attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/consent-policy.ts",
+   "artifacts/api-server/src/routes/privacy.ts",
+   "docs/phase-b-privacy-design.md"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/consent-policy.ts",
+     "artifacts/api-server/src/routes/privacy.ts",
+     "docs/phase-b-privacy-design.md"
+    ],
+    "invariant": "Consent can be withdrawn through the API",
+    "method": "source",
+    "result": "WITHDRAWN exists in the ledger type and the design says withdrawable, but no endpoint writes it (confirmed low).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "consent-withdrawal-no-endpoint"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fprofiles.ts%23PUT%20%2Fprofiles%2Fme::artifacts%2Fapi-server%2Fsrc%2Froutes%2Fprofiles.ts%23organizationId%20scope::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/profiles.ts#PUT /profiles/me",
+   "boundary": "artifacts/api-server/src/routes/profiles.ts#organizationId scope",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/profiles.ts#PUT /profiles/me",
+  "boundary": "artifacts/api-server/src/routes/profiles.ts#organizationId scope",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/profiles.ts",
+   "artifacts/api-server/src/lib/profile-policy.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Tenant and object-isolation attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/opportunities.ts",
+   "artifacts/api-server/src/routes/profiles.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/opportunities.ts",
+     "artifacts/api-server/src/routes/profiles.ts"
+    ],
+    "invariant": "Profile writes are org-scoped, whitelisted and validated",
+    "method": "source",
+    "result": "Org-scoped by session; explicit Zod-parsed fields only; numbers positive and bounded; all claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-idor-cross-org",
+   "h-mass-assignment-promotion",
+   "h-negative-quantity"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Frenova.ts%23GET%20%2Fdashboard::artifacts%2Fapi-server%2Fsrc%2Froutes%2Findex.ts%23renovaRouter%20mount%20without%20auth::artifacts%2Fapi-server::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/renova.ts#GET /dashboard",
+   "boundary": "artifacts/api-server/src/routes/index.ts#renovaRouter mount without auth",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/api-server/src/routes/renova.ts#GET /dashboard",
+  "boundary": "artifacts/api-server/src/routes/index.ts#renovaRouter mount without auth",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/renova.ts",
+   "artifacts/api-server/src/routes/index.ts",
+   "artifacts/api-server/src/renova-app.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/api-server/src/routes/index.ts",
+   "artifacts/api-server/src/routes/renova.ts",
+   "artifacts/renova/src/App.tsx"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/renova-app.ts",
+     "artifacts/api-server/src/routes/index.ts",
+     "artifacts/api-server/src/routes/renova.ts",
+     "artifacts/renova/src/App.tsx"
+    ],
+    "invariant": "Demo endpoints are not writable by anonymous clients",
+    "method": "source",
+    "result": "Six demo endpoints with no auth; POST /projects appends unboundedly; the workspace renders it as real (confirmed medium).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "legacy-demo-api-unauthenticated"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fsandbox-billing.ts%23GET%20%2Fbilling%2Fproducts::artifacts%2Fapi-server%2Fsrc%2Flib%2Fsandbox-payment.ts%23sandboxPaymentConfig::artifacts%2Fapi-server::Feature%20abuse%20and%20data%20leakage",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/sandbox-billing.ts#GET /billing/products",
+   "boundary": "artifacts/api-server/src/lib/sandbox-payment.ts#sandboxPaymentConfig",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Feature abuse and data leakage"
+  },
+  "surface": "artifacts/api-server/src/routes/sandbox-billing.ts#GET /billing/products",
+  "boundary": "artifacts/api-server/src/lib/sandbox-payment.ts#sandboxPaymentConfig",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Feature abuse and data leakage",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/sandbox-billing.ts",
+   "lib/db/src/schema/index.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Derived-data and disclosure attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/sandbox-billing.ts",
+   "lib/db/src/schema/index.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/sandbox-billing.ts",
+     "lib/db/src/schema/index.ts"
+    ],
+    "invariant": "List endpoints return only client-needed fields",
+    "method": "source",
+    "result": "Unscoped .select() returns approvalReference to any SOCIETY user (confirmed low).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "sandbox-products-approval-reference-disclosure"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fapi-server%2Fsrc%2Froutes%2Fsandbox-billing.ts%23POST%20%2Fbilling%2Fwebhook::artifacts%2Fapi-server%2Fsrc%2Flib%2Fsandbox-payment.ts%23validWebhookSignature::artifacts%2Fapi-server::Business%20logic",
+  "canonical_refs": {
+   "surface": "artifacts/api-server/src/routes/sandbox-billing.ts#POST /billing/webhook",
+   "boundary": "artifacts/api-server/src/lib/sandbox-payment.ts#validWebhookSignature",
+   "subsystem": "artifacts/api-server",
+   "attack_class": "Business logic"
+  },
+  "surface": "artifacts/api-server/src/routes/sandbox-billing.ts#POST /billing/webhook",
+  "boundary": "artifacts/api-server/src/lib/sandbox-payment.ts#validWebhookSignature",
+  "subsystem": "artifacts/api-server",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "artifacts/api-server/src/routes/sandbox-billing.ts",
+   "artifacts/api-server/src/lib/sandbox-payment.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#HTTP framing and cache attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/lib/sandbox-payment.ts",
+   "artifacts/api-server/src/routes/sandbox-billing.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/lib/sandbox-payment.ts",
+     "artifacts/api-server/src/routes/sandbox-billing.ts"
+    ],
+    "invariant": "Payments are sandbox-only and webhooks are authenticated and idempotent",
+    "method": "source",
+    "result": "Sandbox config refuses production and non-test keys; amount from DB plus provider re-fetch plus HMAC plus event dedup; all claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-fake-payment-callback",
+   "h-live-payment-price-edit",
+   "h-race-condition-check-then-act"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Fmockup-sandbox%2Fsrc%2FApp.tsx%23mockup%20sandbox::artifacts%2Fmockup-sandbox%2Fvite.config.ts%23dev%20server::artifacts%2Fmockup-sandbox::Wildcard",
+  "canonical_refs": {
+   "surface": "artifacts/mockup-sandbox/src/App.tsx#mockup sandbox",
+   "boundary": "artifacts/mockup-sandbox/vite.config.ts#dev server",
+   "subsystem": "artifacts/mockup-sandbox",
+   "attack_class": "Wildcard"
+  },
+  "surface": "artifacts/mockup-sandbox/src/App.tsx#mockup sandbox",
+  "boundary": "artifacts/mockup-sandbox/vite.config.ts#dev server",
+  "subsystem": "artifacts/mockup-sandbox",
+  "attack_class": "Wildcard",
+  "starting_paths": [
+   "artifacts/mockup-sandbox/src/App.tsx",
+   "artifacts/mockup-sandbox/vite.config.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Wildcard",
+  "selected_companion_blocks": [],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "out_of_scope",
+  "agent_id": null,
+  "reviewed_paths": [],
+  "local_checks": [],
+  "result_fingerprints": [],
+  "unresolved": [
+   "Mockup sandbox is a dev-only component sandbox: a pnpm workspace package that is not built or deployed by artifacts/renova/vercel.json, has no API surface and no production route. Excluded from this run; a later full run may cover it."
+  ]
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fsrc%2FApp.tsx%23routing::artifacts%2Frenova%2Fsrc%2FApp.tsx%23Router::artifacts%2Frenova::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/renova/src/App.tsx#routing",
+   "boundary": "artifacts/renova/src/App.tsx#Router",
+   "subsystem": "artifacts/renova",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/renova/src/App.tsx#routing",
+  "boundary": "artifacts/renova/src/App.tsx#Router",
+  "subsystem": "artifacts/renova",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/renova/src/App.tsx",
+   "artifacts/renova/src/platform/LiveWorkspace.tsx"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#UI-redress and navigation attack classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/routes/enquiries.ts",
+   "artifacts/renova/src/App.tsx"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/routes/enquiries.ts",
+     "artifacts/renova/src/App.tsx"
+    ],
+    "invariant": "Typing /admin does not bypass authorisation",
+    "method": "source",
+    "result": "Frontend admin views are role-gated from /auth/me and the server enforces the role on every admin route; claim disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-admin-routes-no-auth"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fsrc%2Fexperience%23user%20content%20rendering::artifacts%2Frenova%2Fsrc%2Fcomponents%2Fui%2Fchart.tsx%23ChartStyle::artifacts%2Frenova::Injection",
+  "canonical_refs": {
+   "surface": "artifacts/renova/src/experience#user content rendering",
+   "boundary": "artifacts/renova/src/components/ui/chart.tsx#ChartStyle",
+   "subsystem": "artifacts/renova",
+   "attack_class": "Injection"
+  },
+  "surface": "artifacts/renova/src/experience#user content rendering",
+  "boundary": "artifacts/renova/src/components/ui/chart.tsx#ChartStyle",
+  "subsystem": "artifacts/renova",
+  "attack_class": "Injection",
+  "starting_paths": [
+   "artifacts/renova/src/App.tsx",
+   "artifacts/renova/src/platform/LiveWorkspace.tsx",
+   "artifacts/renova/src/components/ui/chart.tsx",
+   "artifacts/api-server/src/lib/email.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+  "selected_companion_blocks": [
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#DOM and object-state attack classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/renova/src/components/ui/chart.tsx",
+   "artifacts/renova/src/experience"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/renova/src/components/ui/chart.tsx",
+     "artifacts/renova/src/experience"
+    ],
+    "invariant": "User content is rendered escaped",
+    "method": "source",
+    "result": "React escapes all interpolations; the only dangerouslySetInnerHTML is dev-config style injection in the unused ChartContainer; stored XSS disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-stored-xss-user-content"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fsrc%2Fexperience%2FFeasibilityDashboard.tsx%23localStorage%20drafts::artifacts%2Frenova%2Fsrc%2Fexperience%2Ffeasibility-dashboard.ts%23STORAGE_KEY::artifacts%2Frenova::Feature%20abuse%20and%20data%20leakage",
+  "canonical_refs": {
+   "surface": "artifacts/renova/src/experience/FeasibilityDashboard.tsx#localStorage drafts",
+   "boundary": "artifacts/renova/src/experience/feasibility-dashboard.ts#STORAGE_KEY",
+   "subsystem": "artifacts/renova",
+   "attack_class": "Feature abuse and data leakage"
+  },
+  "surface": "artifacts/renova/src/experience/FeasibilityDashboard.tsx#localStorage drafts",
+  "boundary": "artifacts/renova/src/experience/feasibility-dashboard.ts#STORAGE_KEY",
+  "subsystem": "artifacts/renova",
+  "attack_class": "Feature abuse and data leakage",
+  "starting_paths": [
+   "artifacts/renova/src/experience/FeasibilityDashboard.tsx",
+   "artifacts/renova/src/experience/FeasibilityDocuments.tsx",
+   "artifacts/renova/src/experience/feasibility-dashboard.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+  "selected_companion_blocks": [
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#Service-worker and browser-storage attack classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "covered",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/renova/src/experience/FeasibilityDashboard.tsx",
+   "artifacts/renova/src/experience/feasibility-dashboard.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/renova/src/experience/FeasibilityDashboard.tsx",
+     "artifacts/renova/src/experience/feasibility-dashboard.ts"
+    ],
+    "invariant": "Drafts stored locally contain no sensitive data without expiry",
+    "method": "source",
+    "result": "No finding. Hardening note (report only): drafts store society answers and contact details (PII) in localStorage with no expiry.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fsrc%2Fexperience%2FGetStarted.tsx%23Phase%201%20pages::artifacts%2Frenova%2Fsrc%2Fexperience%2Fget-started.ts%23GET_STARTED_OPTIONS::artifacts%2Frenova::Obvious%20things",
+  "canonical_refs": {
+   "surface": "artifacts/renova/src/experience/GetStarted.tsx#Phase 1 pages",
+   "boundary": "artifacts/renova/src/experience/get-started.ts#GET_STARTED_OPTIONS",
+   "subsystem": "artifacts/renova",
+   "attack_class": "Obvious things"
+  },
+  "surface": "artifacts/renova/src/experience/GetStarted.tsx#Phase 1 pages",
+  "boundary": "artifacts/renova/src/experience/get-started.ts#GET_STARTED_OPTIONS",
+  "subsystem": "artifacts/renova",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "artifacts/renova/src/experience/GetStarted.tsx",
+   "artifacts/renova/src/experience/get-started.ts",
+   "artifacts/renova/src/experience/FeasibilityCheck.tsx",
+   "artifacts/renova/src/experience/Header.tsx",
+   "artifacts/renova/src/experience/Home.tsx",
+   "artifacts/renova/src/experience/page-meta.ts",
+   "artifacts/renova/public/sitemap.xml"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#Cross-site information leak classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "covered",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/renova/src/experience/FeasibilityCheck.tsx",
+   "artifacts/renova/src/experience/GetStarted.tsx",
+   "artifacts/renova/src/experience/get-started.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/renova/src/experience/FeasibilityCheck.tsx",
+     "artifacts/renova/src/experience/GetStarted.tsx",
+     "artifacts/renova/src/experience/get-started.ts"
+    ],
+    "invariant": "Phase 1 pages have no inputs or data flows to attack",
+    "method": "source",
+    "result": "Static links only; GetStarted routes by role, FeasibilityCheck is a teaser with onward links; no findings.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fsrc%2Fplatform%2FLiveWorkspace.tsx%23auth%20flows::artifacts%2Frenova%2Fsrc%2Fplatform%2Fworkspace-api.ts%23workspaceApi::artifacts%2Frenova::Access%20control",
+  "canonical_refs": {
+   "surface": "artifacts/renova/src/platform/LiveWorkspace.tsx#auth flows",
+   "boundary": "artifacts/renova/src/platform/workspace-api.ts#workspaceApi",
+   "subsystem": "artifacts/renova",
+   "attack_class": "Access control"
+  },
+  "surface": "artifacts/renova/src/platform/LiveWorkspace.tsx#auth flows",
+  "boundary": "artifacts/renova/src/platform/workspace-api.ts#workspaceApi",
+  "subsystem": "artifacts/renova",
+  "attack_class": "Access control",
+  "starting_paths": [
+   "artifacts/renova/src/platform/LiveWorkspace.tsx",
+   "artifacts/renova/src/platform/workspace-api.ts",
+   "artifacts/renova/src/experience/roles.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+  "selected_companion_blocks": [
+   "CLIENT-SIDE.md#Core discipline",
+   "CLIENT-SIDE.md#UI-redress and navigation attack classes",
+   "CLIENT-SIDE.md#Universal moves",
+   "CLIENT-SIDE.md#Validation rules",
+   "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+   "WEB-PROTOCOL-AND-AUTH.md#Browser-session attack classes",
+   "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+   "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/renova/src/platform/LiveWorkspace.tsx",
+   "artifacts/renova/src/platform/workspace-api.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/renova/src/platform/LiveWorkspace.tsx",
+     "artifacts/renova/src/platform/workspace-api.ts"
+    ],
+    "invariant": "The workspace client talks only to /api with the session and respects org scoping",
+    "method": "source",
+    "result": "credentials same-origin against /api only; no database credentials in the frontend; org-scoped server checks; both claims disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-direct-db-access-browser",
+   "h-idor-cross-org"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "artifacts%2Frenova%2Fvercel.json%23rewrites%20and%20headers::artifacts%2Frenova%2Fvercel.json%23headers%20absent::repo::Obvious%20things",
+  "canonical_refs": {
+   "surface": "artifacts/renova/vercel.json#rewrites and headers",
+   "boundary": "artifacts/renova/vercel.json#headers absent",
+   "subsystem": "repo",
+   "attack_class": "Obvious things"
+  },
+  "surface": "artifacts/renova/vercel.json#rewrites and headers",
+  "boundary": "artifacts/renova/vercel.json#headers absent",
+  "subsystem": "repo",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "artifacts/renova/vercel.json",
+   "artifacts/renova/vite.config.ts",
+   "artifacts/api-server/src/renova-app.ts"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "CLOUD-AND-DEPLOYMENT.md#Core discipline",
+   "CLOUD-AND-DEPLOYMENT.md#Ingress, network, and control-plane attack classes",
+   "CLOUD-AND-DEPLOYMENT.md#Universal moves",
+   "CLOUD-AND-DEPLOYMENT.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   ".replit",
+   "artifacts/api-server/src/renova-app.ts",
+   "artifacts/renova/vercel.json",
+   "scripts/post-merge.sh"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     ".replit",
+     "artifacts/api-server/src/renova-app.ts",
+     "artifacts/renova/vercel.json",
+     "scripts/post-merge.sh"
+    ],
+    "invariant": "Hosting config sets security headers, the deployment model is documented, and there is no undocumented second deployment",
+    "method": "source",
+    "result": "No headers section (confirmed low); API process model unknown (needs validation); a Replit autoscale deployment is configured but it is unknown whether it is live (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "api-process-model-unknown",
+   "missing-security-headers",
+   "replit-deployment-live-unknown"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "lib%2Fdb%2Fsrc%2Fschema%2Findex.ts%23users%20and%20auth%20tables::lib%2Fdb%2Fdrizzle%2F0000-0008%23migrations::lib%2Fdb::Business%20logic",
+  "canonical_refs": {
+   "surface": "lib/db/src/schema/index.ts#users and auth tables",
+   "boundary": "lib/db/drizzle/0000-0008#migrations",
+   "subsystem": "lib/db",
+   "attack_class": "Business logic"
+  },
+  "surface": "lib/db/src/schema/index.ts#users and auth tables",
+  "boundary": "lib/db/drizzle/0000-0008#migrations",
+  "subsystem": "lib/db",
+  "attack_class": "Business logic",
+  "starting_paths": [
+   "lib/db/src/schema/index.ts",
+   "lib/db/drizzle/meta/_journal.json",
+   "docs/migration-reconciliation.md"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+  "selected_companion_blocks": [
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Export, backup, restore, and migration attack classes",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+   "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "lib/db/drizzle/meta/_journal.json",
+   "lib/db/src/schema/index.ts"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "lib/db/drizzle/meta/_journal.json",
+     "lib/db/src/schema/index.ts"
+    ],
+    "invariant": "Auth tables store hashes, not secrets",
+    "method": "source",
+    "result": "Password column holds salt:derived scrypt hashes; no plaintext; claim disproved.",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "h-passwords-plaintext"
+  ],
+  "unresolved": []
+ },
+ {
+  "coverage_id": "pnpm-lock.yaml%23dependency%20tree::pnpm-workspace.yaml%23minimumReleaseAge::repo::Obvious%20things",
+  "canonical_refs": {
+   "surface": "pnpm-lock.yaml#dependency tree",
+   "boundary": "pnpm-workspace.yaml#minimumReleaseAge",
+   "subsystem": "repo",
+   "attack_class": "Obvious things"
+  },
+  "surface": "pnpm-lock.yaml#dependency tree",
+  "boundary": "pnpm-workspace.yaml#minimumReleaseAge",
+  "subsystem": "repo",
+  "attack_class": "Obvious things",
+  "starting_paths": [
+   "pnpm-lock.yaml",
+   "pnpm-workspace.yaml",
+   "artifacts/api-server/package.json",
+   "artifacts/renova/package.json"
+  ],
+  "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+  "selected_companion_blocks": [
+   "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Dependency and build-input attack classes",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+   "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules"
+  ],
+  "excluded_blocks": [
+   {
+    "block": "MEMORY-SAFETY-AND-BINARY.md#Bounds, integer, and representation attack classes",
+    "reason": "TypeScript/JavaScript target; no native code, binary parsers, FFI, or kernel interfaces."
+   },
+   {
+    "block": "AI-AND-LLM.md#Context, retrieval, and memory attack classes",
+    "reason": "No AI/LLM features, model calls, tools, or MCP servers/clients in the target."
+   },
+   {
+    "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Local IPC and exported-component attack classes",
+    "reason": "Browser + HTTP server target; no native app, deep links, webview bridges, or local IPC."
+   },
+   {
+    "block": "PROTOCOLS-RPC-AND-MESSAGING.md#Broker and queue isolation attack classes",
+    "reason": "No gRPC, message brokers, queues, or pub/sub in the target; the only webhook is plain HTTPS."
+   }
+  ],
+  "prior_status": "none",
+  "attempts": [],
+  "wave": 1,
+  "status": "candidate",
+  "agent_id": "hunter-a",
+  "reviewed_paths": [
+   "artifacts/api-server/src/renova-app.ts",
+   "pnpm-lock.yaml"
+  ],
+  "local_checks": [
+   {
+    "agent_id": "hunter-a",
+    "reviewed_paths": [
+     "artifacts/api-server/src/renova-app.ts",
+     "pnpm-lock.yaml"
+    ],
+    "invariant": "Pinned dependencies have no known critical/high vulnerabilities reachable from the app",
+    "method": "source",
+    "result": "body-parser 2.3.0 CVE-2026-111181 confirmed medium; Node Brotli CVE needs the production runtime version (needs validation).",
+    "artifact": null
+   }
+  ],
+  "result_fingerprints": [
+   "body-parser-cve-2026-111181-dos",
+   "node-brotli-cve-2026-111497-runtime"
+  ],
+  "unresolved": []
+ }
+]

@@ -1,0 +1,2067 @@
+[
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "api-process-model-unknown",
+    "title": "API process model is unknown: it bounds the blast radius of the body-parser crash (and any future process crash)",
+    "description": "The API server has no vercel.json in the repo, so its deployment shape is not in source: it is reached through a rewrite to api-server-delta-teal.vercel.app, which is consistent with a Vercel serverless function but is not proof of it. The distinction matters for the body-parser finding (CVE-2026-111181): on a long-lived host a single malicious request kills every in-flight request, while on a serverless function it kills only that invocation. The same distinction applies to any future uncaught-exception crash.",
+    "claimed_root_cause": "The production process model is undocumented, so the availability impact of any process crash cannot be bounded from source.",
+    "trace": [
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 7,
+        "kind": "entrypoint",
+        "scope": "vercel.json rewrites",
+        "description": "The frontend rewrites /api/* to api-server-delta-teal.vercel.app; no api-server vercel.json exists in the repo."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 49,
+        "kind": "propagation",
+        "scope": "createApp",
+        "description": "The body-parser crash path exists in the app regardless of the process model."
+      },
+      {
+        "file": "artifacts/api-server/server.mjs",
+        "line": 1,
+        "kind": "sink",
+        "scope": "server.mjs",
+        "description": "server.mjs is the local entry point; it does not describe the production runtime."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 7,
+        "description": "API host is a separate Vercel project. (\"destination\": \"https://api-server-delta-teal.vercel.app/api/:path*\")"
+      }
+    ],
+    "blockers": [
+      "deployment: The api-server project's Vercel configuration (serverless function vs long-lived host) must be read from the Vercel dashboard."
+    ],
+    "validation_plan": {
+      "deployment": "1. In the Vercel dashboard, confirm whether the api-server project deploys as serverless functions (and which runtime) or as a long-lived host.\n2. Record the answer in the repo (or in the audit follow-up) so the body-parser finding's blast radius is stated correctly."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "body-parser-cve-2026-111181-dos",
+    "title": "body-parser 2.3.0 (CVE-2026-111181): one unauthenticated request crashes the API process",
+    "description": "Express 5.2.1 resolves body-parser 2.3.0, which is inside the vulnerable range 2.0.0-2.3.0 for CVE-2026-111181 (vendor CVSS 7.5 HIGH, GHSA-27r3-jxmh-p828, disclosed 22 Oct 2026, fixed in 2.4.0). The API mounts express.raw() (webhook), express.json() and express.urlencoded() globally with the default inflate: true (they carry a 256 kb size limit, which does not mitigate this: the advisory's proof-of-concept body is about 100 kb), ahead of all routes and ahead of authentication. A single unauthenticated POST carrying a valid gzip member followed by a zero byte and trailing bytes crashes the Node process with an uncaught exception. The vendor advisory states the request does not need to match a valid route or pass an authentication check when the parser is mounted globally.",
+    "root_cause": "Pinned dependency body-parser 2.3.0 contains the decompression-stream lifetime bug: after the first gzip member ends, raw-body detaches its error listener and body-parser calls next() while the request is still piped into the decoder; trailing bytes then raise an error with no listener, which Node turns into an uncaught exception and the process exits. The app enables the vulnerable path by mounting the parsers globally with default inflate.",
+    "intended_behavior": "Compressed request bodies are decompressed safely or rejected; a malformed body produces a 400 response, never an uncaught exception or a process exit.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 90,
+        "kind": "entrypoint",
+        "scope": "POST /enquiries handler",
+        "description": "POST /enquiries is reachable without any authentication and passes through the global parsers first."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 49,
+        "kind": "propagation",
+        "scope": "createApp",
+        "description": "express.json() mounted globally with default inflate: true (no inflate: false)."
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "line": 4854,
+        "kind": "sink",
+        "scope": "pnpm-lock.yaml",
+        "description": "express@5.2.1 depends on body-parser 2.3.0, inside the vulnerable range 2.0.0-2.3.0 (fixed in 2.4.0)."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "pnpm-lock.yaml",
+        "line": 1800,
+        "description": "body-parser@2.3.0 is the pinned version. (body-parser@2.3.0:)"
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "line": 4854,
+        "description": "Express 5.2.1 resolves that vulnerable version. (body-parser: 2.3.0)"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 48,
+        "description": "express.raw() for the webhook, also default inflate. (app.use(\"/api/billing/webhook\", express.raw({ type: \"application/json\", limit: \"256kb\" }));)"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 49,
+        "description": "express.json() mounted globally, default inflate (256 kb limit does not mitigate this CVE). (app.use(express.json({ limit: \"256kb\", strict: true }));)"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 50,
+        "description": "express.urlencoded() mounted globally, default inflate. (app.use(express.urlencoded({ extended: true, limit: \"256kb\" }));)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 90,
+        "description": "Unauthenticated POST /enquiries passes through the parsers. (router.post(\"/enquiries\", async (request, response, next) => {)"
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "system_configuration",
+        "description": "Request decompression is enabled (default inflate: true)."
+      },
+      {
+        "kind": "third_party_dependency",
+        "description": "body-parser 2.3.0 is the resolved version (vulnerable range 2.0.0-2.3.0; fixed in 2.4.0)."
+      },
+      {
+        "kind": "authentication_level",
+        "description": "No authentication is required: the parser runs before every route, including unauthenticated ones."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "No account, no session and no valid route are needed. A single HTTP POST to any /api path with Content-Type: application/json and Content-Encoding: gzip, whose body is a valid gzip member for '{}' followed by a zero byte and trailing filler, crashes the API process.",
+      "payloads": [
+        "gzip-compressed '{}' + 0x00 + 100 KiB of filler bytes, sent as the request body with Content-Encoding: gzip (the payload shape from the official Express advisory for CVE-2026-111181)."
+      ],
+      "instructions": [
+        "Build a local instance from this exact commit in an isolated environment (never against production).",
+        "Send one POST to /api/enquiries (or any /api path) with Content-Type: application/json, Content-Encoding: gzip, and the payload above.",
+        "Observe the process: the request is answered normally, then the process exits with an uncaught exception once the trailing bytes reach the decoder.",
+        "Repeat against a second instance after upgrading body-parser to >=2.4.0 (or setting inflate: false): the process stays alive and the request is rejected or parsed normally."
+      ],
+      "observed_result": "NOT reproduced by local execution in this run: no OS-enforced sandbox was available, so no target code was executed. The result is established by the official Express advisory (fetched 28 Nov 2026, expressjs.com CVE-2026-111181 page), which documents the single-request crash for a standard Express 5 application with body-parser 2.3.0, combined with the exact version match (2.3.0) and the global default-inflate mounting verified in source. Confidence is medium for this reason."
+    },
+    "remediation": {
+      "strategy": "Upgrade the vulnerable dependency; do not rely on request-shape checks.",
+      "code_changes": [
+        {
+          "file_name": "package.json",
+          "fixed_code": "\"pnpm\": {\n  \"overrides\": {\n    \"body-parser\": \"^2.4.0\"\n  }\n}\n// then re-run pnpm install --frozen-lockfile to re-pin the lockfile"
+        },
+        {
+          "file_name": "artifacts/api-server/src/renova-app.ts",
+          "fixed_code": "app.use(express.json({ limit: \"256kb\", strict: true, inflate: false }));\napp.use(express.urlencoded({ extended: true, limit: \"256kb\", inflate: false }));\n// Only use inflate: false if compressed request bodies are not needed; otherwise upgrade body-parser to >=2.4.0."
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "high",
+        "reason": "Trivially exploitable by any unauthenticated remote client; the payload shape is published in the vendor advisory."
+      },
+      "impact": {
+        "score": "medium",
+        "reason": "A process crash is an availability failure. Blast radius is bounded by the deployment model: on a long-lived host it kills all in-flight requests; on a Vercel serverless function it kills only that invocation (and consumes an invocation). The production process model is not in the repo, so impact is scored conservatively at 3, not higher."
+      },
+      "overall_severity": "medium"
+    },
+    "confidence": {
+      "score": "medium",
+      "reason": "Exact version match plus vendor advisory plus global default-inflate mounting are all verified in source; the crash itself was not executed locally in this run because no OS-enforced sandbox was available."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "consent-withdrawal-no-endpoint",
+    "title": "Consent withdrawal has no API: the ledger supports WITHDRAWN but nothing can write it",
+    "description": "The consent ledger type is 'GIVEN' | 'WITHDRAWN' and the Phase B design document states consent is 'withdrawable' by design, but no route writes a WITHDRAWN event and no endpoint lets a user withdraw consent. A grep for WITHDRAWN across the API finds only the type definition and opportunity-interest withdrawal (a different concept). The only way a user can withdraw consent today is a manual privacy request handled by an admin, which is slower and not self-serve.",
+    "root_cause": "The withdrawal path was designed in the ledger and the design doc but never wired to an endpoint.",
+    "intended_behavior": "A signed-in user (or a verified email holder) can withdraw consent through an endpoint that records a WITHDRAWN consent event, and the privacy policy explains how.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/consent-policy.ts",
+        "line": 14,
+        "kind": "entrypoint",
+        "scope": "ConsentAction type",
+        "description": "ConsentAction includes WITHDRAWN, so the ledger can record it."
+      },
+      {
+        "file": "docs/phase-b-privacy-design.md",
+        "line": 169,
+        "kind": "propagation",
+        "scope": "phase-b-privacy-design.md",
+        "description": "Design doc states consent is withdrawable by design."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/privacy.ts",
+        "line": 1,
+        "kind": "sink",
+        "scope": "privacy routes",
+        "description": "No privacy route writes a WITHDRAWN consent event; the only withdrawal surface is a manual privacy request."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/consent-policy.ts",
+        "line": 14,
+        "description": "WITHDRAWN exists in the ledger type. (export type ConsentAction = \"GIVEN\" | \"WITHDRAWN\";)"
+      },
+      {
+        "file": "docs/phase-b-privacy-design.md",
+        "line": 169,
+        "description": "Design says consent is withdrawable."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/privacy.ts",
+        "line": 1,
+        "description": "No WITHDRAWN writer exists in the privacy routes (verified by grep)."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "data_state",
+        "description": "The consent ledger can store WITHDRAWN events, but no code path produces one."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Not an attacker scenario: a user who wants to withdraw consent finds no button or endpoint and must file a manual privacy request instead.",
+      "payloads": [
+        "(none - this is a missing control, not an exploitable input)"
+      ],
+      "instructions": [
+        "Search the API source for WITHDRAWN: expect only the type definition and opportunity-interest withdrawal.",
+        "List the privacy routes: expect no withdrawal endpoint.",
+        "After the fix, call the new withdrawal endpoint as a signed-in user and expect a WITHDRAWN consent event in the ledger."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox). Established from source by grep plus reading the consent-policy and privacy routes in full. Confidence is high on the absence."
+    },
+    "remediation": {
+      "strategy": "Add a withdrawal endpoint that records a WITHDRAWN event.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/api-server/src/routes/privacy.ts",
+          "fixed_code": "router.post(\"/privacy/consent/withdraw\", requireAuth(), async (request, response) => {\n  await recordConsentEvent(database, {\n    userId: request.auth!.userId,\n    action: \"WITHDRAWN\",\n    scope: \"marketing\",\n  });\n  return response.status(200).json({ ok: true });\n});\n// Surface the option in the privacy page and describe it in the privacy policy."
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "medium",
+        "reason": "Every user who wants to withdraw consent hits this gap; it is a control gap, not an exploit."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "DPDP control gap: consent cannot be withdrawn self-serve, so withdrawal depends on manual admin handling. No data exposure."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Grep plus full reads of the consent and privacy code establish the absence directly."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "cors-origins-production-value",
+    "title": "Production CORS_ORIGINS value is unknown: credentials are allowed, so the origin list must be exactly the approved hosts",
+    "description": "The CORS configuration is fail-closed in code: origins come from the CORS_ORIGINS environment variable, credentials: true is set, and an unset variable means origin: false (no cross-origin access at all). That is the correct design, but the actual production value is deployment-only and is not in the repo. If it ever includes a wildcard, an attacker origin or a stale preview deployment, cross-origin requests with credentials would be accepted from that origin.",
+    "claimed_root_cause": "A misconfigured CORS_ORIGINS value in production (wildcard, attacker-controlled or stale preview origin) combined with credentials: true would allow cross-origin authenticated API calls.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 36,
+        "kind": "entrypoint",
+        "scope": "createApp",
+        "description": "allowedOrigins is read from the CORS_ORIGINS environment variable."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 43,
+        "kind": "propagation",
+        "scope": "createApp",
+        "description": "Unset means origin: false (fail-closed); set means the listed origins are trusted."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 44,
+        "kind": "sink",
+        "scope": "createApp",
+        "description": "credentials: true is set, so a trusted origin's cross-origin requests carry the session cookie."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 36,
+        "description": "Origins come from the environment. (const allowedOrigins = (process.env.CORS_ORIGINS ?? \"\"))"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 43,
+        "description": "Fail-closed default. (origin: allowedOrigins.length ? allowedOrigins : false,)"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 44,
+        "description": "Credentials allowed. (credentials: true,)"
+      }
+    ],
+    "blockers": [
+      "environment: The production CORS_ORIGINS value lives in the Vercel project settings and is not in the repo."
+    ],
+    "validation_plan": {
+      "deployment": "1. In the Vercel dashboard for the api-server project, read CORS_ORIGINS and confirm it lists exactly https://nirmaq.in (and any explicitly approved preview origins, e.g. *.vercel.app preview deployments) - no wildcard, no other domains.\n2. Confirm the value after any preview deployment is added or removed."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "enquiry-rate-limit-ip-rotation",
+    "title": "Unauthenticated enquiry endpoint: the IP+email fingerprint rate limit is defeated by rotating both, enabling unbounded email-send spend and admin notification flooding",
+    "description": "POST /enquiries is unauthenticated and has no global rate limit. Its only abuse control is a fingerprint (SHA-256 of IP + email) capped at 5 accepted enquiries per hour. Both inputs are attacker-controlled: the IP (via proxies/VPNs) and the email (any address). Rotating both defeats the cap entirely. Every accepted enquiry creates two Resend email jobs (an acknowledgement to the submitted address and an admin notification to info@nirmaq.in) and a DB row, so an attacker can drive unbounded email-provider spend, flood the admin inbox and grow the enquiries table. The handler also awaits the email-send attempt in the request (up to 10 s per send), so slow or failing sends extend each request.",
+    "root_cause": "Abuse control is keyed only to a fingerprint made of two attacker-controlled values, with no global or per-endpoint rate limit and no CAPTCHA, and each accepted enquiry unconditionally triggers two outbound emails.",
+    "intended_behavior": "Unauthenticated submission endpoints have a global rate limit (and ideally a humanity check) that an attacker cannot bypass by rotating identifiers, and email sending is decoupled from the request so a flood cannot tie up request handling.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 90,
+        "kind": "entrypoint",
+        "scope": "POST /enquiries handler",
+        "description": "POST /enquiries, unauthenticated."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 71,
+        "kind": "propagation",
+        "scope": "fingerprint",
+        "description": "Fingerprint is SHA-256(IP + email); both inputs are attacker-controlled."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 109,
+        "kind": "sink",
+        "scope": "POST /enquiries handler",
+        "description": "Cap is 5 per fingerprint per hour; rotating IP and email creates a fresh bucket each time, and each accepted enquiry creates two email jobs."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 71,
+        "description": "Fingerprint definition. (function fingerprint(request: { ip?: string }, email: string): string {)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 99,
+        "description": "One-hour window. (const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 109,
+        "description": "5-per-hour cap per fingerprint. (if ((recent?.value ?? 0) >= 5) return null;)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/email.ts",
+        "line": 197,
+        "description": "Resend send has a 10 s timeout per attempt (synchronous cost in the request)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 162,
+        "description": "The enquiry handler awaits email dispatch in the request. (jobs = await processEnquiryEmailJobs(enquiryReference.id);)"
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "authentication_level",
+        "description": "No authentication is required to submit an enquiry."
+      },
+      {
+        "kind": "environmental_dependency",
+        "description": "The attacker can rotate source IPs (proxies/VPNs) and submit arbitrary email addresses."
+      },
+      {
+        "kind": "third_party_dependency",
+        "description": "Each accepted enquiry triggers two Resend sends, so the cost is operator spend."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Submit enquiries in a loop, changing the source IP and the email address each time. Every submission is accepted, each creates two emails and a DB row, and the admin inbox fills with notifications.",
+      "payloads": [
+        "POST /api/enquiries with a fresh email address and a fresh source IP on each request (valid Zod payload, consent: true)"
+      ],
+      "instructions": [
+        "Against a local instance with a stubbed Resend key, submit 6 enquiries with the same IP+email: expect the 6th to be rejected (429/duplicate).",
+        "Submit 6 more with a different IP and a different email: expect all 6 to be accepted, proving the cap is per-fingerprint only.",
+        "Count the email jobs created per accepted enquiry (expect 2)."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox). Established from source: the fingerprint construction and the 5-per-hour cap are directly visible, and both inputs are attacker-controlled by construction. Confidence is medium because the live bypass was not demonstrated and the email-spend impact depends on the Resend plan."
+    },
+    "remediation": {
+      "strategy": "Add a global rate limit and decouple email sending from the request.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/api-server/src/routes/enquiries.ts",
+          "fixed_code": "router.post(\"/enquiries\", enforceEnquiryRateLimit, async (request, response, next) => {\n  // enforceEnquiryRateLimit: a global per-endpoint limit (e.g. N accepted submissions\n  // per minute across all fingerprints) keyed to a server-side counter, not to\n  // client-controlled values. Consider a CAPTCHA before public launch.\n});"
+        },
+        {
+          "file_name": "artifacts/api-server/src/routes/enquiries.ts",
+          "fixed_code": "// Move email dispatch fully out of the request path: enqueue the two email jobs\n// and return 202 immediately; a worker delivers them. The request must not await\n// processEnquiryEmailJobs (currently up to 10 s per send)."
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "high",
+        "reason": "Trivial to automate; both fingerprint inputs are attacker-controlled and rotation is cheap."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Unbounded email-provider spend, admin inbox flooding and DB row growth. No user data is exposed and no account is compromised, so impact is low."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "medium",
+      "reason": "The bypass logic is directly visible in source; the live bypass and the actual email cost were not demonstrated in this run."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "feasibility-no-upload-quota",
+    "title": "No quota on feasibility requests or document uploads: an authenticated society can create unlimited requests and 10 MB uploads (private Blob storage cost)",
+    "description": "POST /feasibility creates a feasibility request and POST /feasibility/:id/documents uploads a document (up to 10 MB per file, PDF/JPEG/PNG with magic-byte checks) into private Vercel Blob storage. Neither endpoint enforces any per-user, per-request or per-society quota: there is no limit on the number of requests a society can create, no limit on the number of documents per request, and no total storage cap. An authenticated society user (or a compromised one) can therefore drive unbounded Blob storage cost. The file-content checks themselves are sound (allowlist + magic-byte sniffing + private bucket + attachment disposition).",
+    "root_cause": "The feasibility creation and document-upload handlers validate file type and size but never count existing requests or documents, and no quota is configured on the Blob store.",
+    "intended_behavior": "Each society has a bounded number of feasibility requests and a bounded total upload size (per request and per society); exceeding the bound returns a clear error instead of storing more files.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 251,
+        "kind": "entrypoint",
+        "scope": "POST /feasibility handler",
+        "description": "POST /feasibility creates a request with no per-society count check."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 446,
+        "kind": "propagation",
+        "scope": "POST /feasibility/:id/documents handler",
+        "description": "POST /feasibility/:id/documents accepts a file with no per-request document count or total-size check."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 105,
+        "kind": "sink",
+        "scope": "module constants",
+        "description": "The only size control is the per-file 10 MB cap; no aggregate limit exists anywhere in the route."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 251,
+        "description": "Feasibility creation route. (router.post()"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 446,
+        "description": "Document upload route. (router.post()"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 105,
+        "description": "Per-file cap only. (const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 452,
+        "description": "Per-file limit applied to the upload. (limit: MAX_DOCUMENT_BYTES,)"
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "authorization_role",
+        "description": "Requires an authenticated SOCIETY user (registration is currently closed, so the principal set is small today, but it opens with registration)."
+      },
+      {
+        "kind": "third_party_dependency",
+        "description": "Uploads go to private Vercel Blob storage, which is billed by usage."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "As an authenticated society user, create feasibility requests in a loop and upload a 10 MB file to each. Nothing stops the loop; storage usage grows linearly with the number of uploads.",
+      "payloads": [
+        "Repeated POST /api/feasibility/:id/documents with a 10 MB PDF"
+      ],
+      "instructions": [
+        "Against a local instance with Blob storage stubbed, sign in as a society user, create a request and upload documents in a loop (e.g. 20 x 10 MB).",
+        "Expect every upload to succeed; count the stored bytes (expect no cap to trigger).",
+        "After the fix, repeat: expect the upload past the quota to be rejected."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox). Established from source: both handlers were read in full and contain no counting or quota logic. Confidence is medium because the live cost depends on the Blob plan and because registration is currently closed, which bounds the principal set today."
+    },
+    "remediation": {
+      "strategy": "Enforce per-society and per-request quotas server-side.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/api-server/src/routes/feasibility.ts",
+          "fixed_code": "const existing = await database\n  .select({ count: count() })\n  .from(feasibilityDocuments)\n  .where(eq(feasibilityDocuments.feasibilityId, active.id));\nif (existing[0]?.count >= MAX_DOCUMENTS_PER_REQUEST)\n  throw Object.assign(new Error(\"Document limit reached for this request.\"), { status: 429 });\n// Apply the same pattern to POST /feasibility (max requests per society) and to total bytes."
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "medium",
+        "reason": "Requires an authenticated society account; registration is currently closed, so the principal set is small today."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Unbounded storage cost and admin review burden; no data exposure and no availability loss to other users."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "medium",
+      "reason": "The absence of quota logic is directly visible in both handlers read in full; the live cost impact depends on the Blob plan and was not demonstrated."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "first-admin-provisioning-missing",
+    "title": "No first-admin provisioning path: there is no approved way to create the first ADMIN",
+    "description": "No seed script, CLI, admin-creation endpoint or documented procedure exists in the repo for creating the first ADMIN user. Registration cannot create one (REGISTRATION_PARTICIPANTS excludes ADMIN and a test asserts it), every admin route requires an existing ADMIN, and the only admin-creation evidence anywhere is a test fixture that inserts a user directly into the database. The admin role is therefore unreachable by design until someone with database access creates the first admin manually, and no approved method or named person for that step exists. This is the Prompt H 'first-admin gap' (rated HIGH there); it stays open because the decision is the owner's, not the code's.",
+    "claimed_root_cause": "The first admin can only be created by direct database access, with no reviewed procedure, no named operator and no audit trail for the bootstrap step.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.ts",
+        "line": 1,
+        "kind": "entrypoint",
+        "scope": "REGISTRATION_PARTICIPANTS",
+        "description": "REGISTRATION_PARTICIPANTS excludes ADMIN, so signup cannot create an admin."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.test.ts",
+        "line": 10,
+        "kind": "propagation",
+        "scope": "registration participants test",
+        "description": "Test asserts ADMIN is not a registrable participant."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/registration-release.ts",
+        "line": 17,
+        "kind": "sink",
+        "scope": "registrationRelease",
+        "description": "Registration is closed (release all-false, approvalId empty); no provisioning path is defined anywhere."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.ts",
+        "line": 1,
+        "description": "Participants list excludes ADMIN."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.test.ts",
+        "line": 10,
+        "description": "Assertion that ADMIN cannot register. (assert.equal(REGISTRATION_PARTICIPANTS.includes(\"ADMIN\" as never), false);)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/registration-release.ts",
+        "line": 17,
+        "description": "Release is closed; no admin bootstrap is defined. (export const registrationRelease: RegistrationRelease = {)"
+      }
+    ],
+    "blockers": [
+      "owner_decision: Who the first admin is, and which provisioning method is approved (owner-run SQL, a reviewed one-off script, or a seed), is Aditi's decision and is not in the repo.",
+      "environment: Whether an admin already exists in production cannot be checked from source (and must not be probed from here)."
+    ],
+    "validation_plan": {
+      "deployment": "1. Aditi names the first admin and the approved provisioning method.\n2. Provision the first admin through that reviewed method (never an unreviewed script against production), record the audit-log entry, and verify the admin can sign in and reach /admin.\n3. Document the procedure in the repo so the next admin creation is repeatable."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "gitignore-missing-dotenv",
+    "title": ".gitignore does not ignore .env files, so a future .env could be committed accidentally",
+    "description": ".gitignore has no .env entry. No .env file exists in the repo and a history sweep found no committed secrets, so nothing has leaked; the risk is purely prospective. A developer adding a .env file (which the codebase expects for DATABASE_URL, RESEND_API_KEY and the auth token secret) could commit it by accident, and the repo's own docs discuss those secrets by name.",
+    "root_cause": "The .gitignore was never given a .env rule.",
+    "intended_behavior": ".env* files are ignored by default so a secret file can never be staged.",
+    "trace": [
+      {
+        "file": ".gitignore",
+        "line": 1,
+        "kind": "entrypoint",
+        "scope": ".gitignore",
+        "description": ".gitignore read in full; no .env line exists."
+      },
+      {
+        "file": ".gitignore",
+        "line": 1,
+        "kind": "sink",
+        "scope": ".gitignore",
+        "description": "A .env file created in the repo root would be stageable by git."
+      }
+    ],
+    "evidence": [
+      {
+        "file": ".gitignore",
+        "line": 1,
+        "description": "No .env entry (verified by grep)."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "system_configuration",
+        "description": "A developer creates a .env file in the repo and runs git add."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Not an attacker scenario: this is a prospective hygiene gap.",
+      "payloads": [
+        "(none)"
+      ],
+      "instructions": [
+        "Read .gitignore: expect no .env line.",
+        "Create a dummy .env file in a scratch clone and run git status: expect it to appear as untracked (stageable).",
+        "After the fix, repeat: expect it to be ignored."
+      ],
+      "observed_result": "NOT executed in this run. Established from source: .gitignore was read in full and grep found no .env line, and no .env file exists in the repo. Confidence is high on the absence; the staging behaviour was not demonstrated."
+    },
+    "remediation": {
+      "strategy": "One-line .gitignore fix.",
+      "code_changes": [
+        {
+          "file_name": ".gitignore",
+          "fixed_code": ".env*"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "low",
+        "reason": "Requires a developer to create a .env in the repo and stage it; nothing has leaked so far."
+      },
+      "impact": {
+        "score": "informational",
+        "reason": "Prospective only; no secret is currently exposed."
+      },
+      "overall_severity": "informational"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": ".gitignore read in full; the missing entry is directly visible."
+    }
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-admin-routes-no-auth",
+    "title": "Prompt H claim: admin routes have no authentication",
+    "description": "Prompt H's audit recorded admin gating as PASS, but the claim to test is that admin routes lack authentication. It is disproved.",
+    "claimed_root_cause": "Admin routes are reachable without authentication, so anyone can list, assign or act on enquiries.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 194,
+        "kind": "entrypoint",
+        "scope": "GET /admin/enquiries handler",
+        "description": "GET /admin/enquiries requires requireAuth() + requireRole('ADMIN')."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/email-jobs.ts",
+        "line": 9,
+        "kind": "propagation",
+        "scope": "GET /admin/email-jobs handler",
+        "description": "Email-job admin routes also require the ADMIN role."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 259,
+        "kind": "sink",
+        "scope": "PATCH /admin/enquiries/:id handler",
+        "description": "Even the assignee check requires the target user to be an active ADMIN."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 194,
+        "description": "Admin list route is role-gated. (requireRole(\"ADMIN\"),)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/email-jobs.ts",
+        "line": 9,
+        "description": "Admin email-job route is role-gated. (requireRole(\"ADMIN\"),)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 259,
+        "description": "Assignee must be an active ADMIN. (eq(users.role, \"ADMIN\"),)"
+      }
+    ],
+    "reason": "Every /admin/* route carries requireAuth() + requireRole('ADMIN'); the assignee check additionally requires the target to be an active ADMIN; there is no users-delete route. The claim is disproved by the code."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-ai-endpoint-abuse",
+    "title": "Gist attacks 5 and 14: prompt injection / AI-endpoint abuse",
+    "description": "The target has no AI features, no model calls and no AI endpoints at all, so prompt injection and AI-endpoint abuse have no surface here.",
+    "claimed_root_cause": "An attacker abuses an AI endpoint or injects a prompt that changes the app's behaviour.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/index.ts",
+        "line": 17,
+        "kind": "entrypoint",
+        "scope": "createRouter",
+        "description": "The full route table is mounted here; it contains auth, enquiries, privacy, feasibility, opportunities, profiles, billing and workspace routes - no AI routes."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 53,
+        "kind": "sink",
+        "scope": "createApp",
+        "description": "All routes live under /api; no model or completion endpoint exists in the app."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/index.ts",
+        "line": 17,
+        "description": "Route table has no AI endpoint. (router.use(renovaRouter);)"
+      }
+    ],
+    "reason": "There is no AI surface in this codebase (no model calls, no completion endpoints), so the attack class does not apply. Not applicable, recorded as rejected so a future run does not re-open it."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-direct-db-access-browser",
+    "title": "Gist attack 15: direct database access from the browser",
+    "description": "The browser only talks to /api with credentials: 'same-origin'; no database credentials exist in the frontend and no row-level-security concept applies because the server mediates every access.",
+    "claimed_root_cause": "The frontend connects directly to the database, so a user can query any table.",
+    "trace": [
+      {
+        "file": "artifacts/renova/src/platform/workspace-api.ts",
+        "line": 16,
+        "kind": "entrypoint",
+        "scope": "workspaceApi client",
+        "description": "The frontend client uses credentials: 'same-origin' against /api only."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 53,
+        "kind": "propagation",
+        "scope": "createApp",
+        "description": "Every request goes through the Express app, which enforces auth and org scoping server-side."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/index.ts",
+        "line": 17,
+        "kind": "sink",
+        "scope": "createRouter",
+        "description": "The route table is the only data surface; no database connection string is present in the frontend bundle."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/renova/src/platform/workspace-api.ts",
+        "line": 16,
+        "description": "Same-origin API client. (credentials: \"same-origin\",)"
+      }
+    ],
+    "reason": "The browser has no database access at all; all data flows through the server, which enforces authentication and org scoping. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-fake-payment-callback",
+    "title": "Gist attack 8: fake payment via a forged client callback or webhook",
+    "description": "The sandbox payment flow validates the webhook signature (HMAC), re-fetches the provider order, checks the amount against the database, and deduplicates webhook events with an advisory lock.",
+    "claimed_root_cause": "A forged payment callback marks an order paid without money moving.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 264,
+        "kind": "entrypoint",
+        "scope": "POST /billing/webhook handler",
+        "description": "The webhook signature is verified with validWebhookSignature (HMAC + timingSafeEqual)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 163,
+        "kind": "propagation",
+        "scope": "POST /billing/checkout handler",
+        "description": "The provider order is re-fetched and its amount must match the database order."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 282,
+        "kind": "sink",
+        "scope": "POST /billing/webhook handler",
+        "description": "Webhook events are deduplicated with a per-event advisory lock, so a replay cannot double-apply."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 264,
+        "description": "HMAC verification. (!validWebhookSignature()"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 163,
+        "description": "Amount match against the DB order. (provider.amount !== order.amountMinor ||)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 282,
+        "description": "Per-event advisory lock. (sql`select pg_advisory_xact_lock(hashtextextended(${`sandbox:event:${eventId}`},0))`,)"
+      }
+    ],
+    "reason": "A forged callback fails the HMAC, and a forged provider order fails the re-fetch/amount check; replays are deduplicated. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-idor-cross-org",
+    "title": "Gist attack 2: IDOR / cross-organisation access",
+    "description": "Every route re-derives ownership from the session's organisation id and returns 404 on a mismatch, so one user cannot read or act on another organisation's data.",
+    "claimed_root_cause": "Object ids in URLs are trusted, so changing an id in the URL exposes another organisation's data.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 315,
+        "kind": "entrypoint",
+        "scope": "GET /feasibility/:id handler",
+        "description": "assertFeasibilityOwnership checks the session org against the record and returns 404 on mismatch (no existence oracle)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 194,
+        "kind": "propagation",
+        "scope": "GET /admin/enquiries handler",
+        "description": "Admin routes require the ADMIN role; society routes are org-scoped by the session."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 135,
+        "kind": "sink",
+        "scope": "GET /opportunities handler",
+        "description": "Reads filter by the session org id, never a client-supplied org id."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 315,
+        "description": "Ownership assertion. (assertFeasibilityOwnership()"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 194,
+        "description": "Admin role gate."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 135,
+        "description": "Server-side org id in the read filter. (.where(eq(societies.organizationId, request.auth!.organizationId!)))"
+      }
+    ],
+    "reason": "Ownership is re-derived from the session on every route (org-scoped SQL joins, 404 on mismatch, no existence oracle). The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-live-payment-price-edit",
+    "title": "Prompt H claim: a live payment path exists and prices can be edited",
+    "description": "Prompt H recorded 'no live payment path' as PASS. The claim to test is that live payments can be taken or prices manipulated. It is disproved.",
+    "claimed_root_cause": "The payment flow accepts client-supplied amounts or runs against the live Razorpay key.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/sandbox-payment.ts",
+        "line": 3,
+        "kind": "entrypoint",
+        "scope": "sandboxPaymentConfig",
+        "description": "sandboxPaymentConfig refuses VERCEL_ENV=production, requires RENOVA_PAYMENTS_MODE=sandbox and a rzp_test_ key."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 144,
+        "kind": "propagation",
+        "scope": "POST /billing/checkout handler",
+        "description": "The checkout amount comes from the database product row, not the client."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 163,
+        "kind": "sink",
+        "scope": "POST /billing/checkout handler",
+        "description": "The provider order is re-fetched and its amount must match the database amount."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/sandbox-payment.ts",
+        "line": 3,
+        "description": "Sandbox-only config. (export function sandboxPaymentConfig(env: NodeJS.ProcessEnv = process.env) {)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 144,
+        "description": "Amount from the DB product. (amountMinor: product.amountMinor,)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 163,
+        "description": "Provider amount must match the DB amount. (provider.amount !== order.amountMinor ||)"
+      }
+    ],
+    "reason": "Live payments are refused by configuration (production env or a non-test key throws 503), the amount is read from the database, and the provider order is re-fetched and amount-checked. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-live-secrets-in-git",
+    "title": "Candidate: live secrets are committed to git history",
+    "description": "A history sweep for sk_live_, sk_test_, AKIA, ghp_, BEGIN PRIVATE KEY, service_role, RESEND_API_KEY and DATABASE_URL values found no live secret. The only RESEND_API_KEY/DATABASE_URL hits are environment-name references and TEST-ONLY placeholders.",
+    "claimed_root_cause": "A real API key, database URL or private key is committed in the repository.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/tests/auth-delivery.ts",
+        "line": 80,
+        "kind": "entrypoint",
+        "scope": "test fixture",
+        "description": "A 30-character TEST-ONLY placeholder string, verified by prefix check, not a live key."
+      },
+      {
+        "file": "artifacts/api-server/tests/privacy.integration.ts",
+        "line": 34,
+        "kind": "propagation",
+        "scope": "test fixture",
+        "description": "Another TEST-ONLY placeholder, not a live secret."
+      },
+      {
+        "file": ".gitignore",
+        "line": 1,
+        "kind": "sink",
+        "scope": ".gitignore",
+        "description": "No .env file was ever committed; the remaining gap is only the missing .env ignore rule (recorded separately as a confirmed informational finding)."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/tests/auth-delivery.ts",
+        "line": 80,
+        "description": "TEST-ONLY placeholder, not a secret."
+      },
+      {
+        "file": "artifacts/api-server/tests/privacy.integration.ts",
+        "line": 34,
+        "description": "TEST-ONLY placeholder, not a secret."
+      }
+    ],
+    "reason": "The sweep found zero live secrets in history; the two suspicious-looking hits are 30-character TEST-ONLY placeholders. The claim is disproved. (The missing .gitignore .env rule is a separate confirmed informational finding.)"
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-mass-assignment-promotion",
+    "title": "Gist attack 6: self-promotion via mass assignment",
+    "description": "All writes use explicit Zod-parsed whitelisted fields; no ...req.body spread reaches a database create or update.",
+    "claimed_root_cause": "A client can add role: 'ADMIN' (or similar) to a request body and have it stored.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "kind": "entrypoint",
+        "scope": "POST /auth/register handler",
+        "description": "Signup derives the role server-side from registrationIdentity; no role field is read from the client."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 149,
+        "kind": "propagation",
+        "scope": "POST /opportunities handler",
+        "description": "The opportunity create lists explicit fields from the parsed input."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 526,
+        "kind": "sink",
+        "scope": "POST /opportunities/:id/interest handler",
+        "description": "The one spread in the codebase is of the Zod-parsed update input, which is itself whitelisted."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "description": "Role derived server-side."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 149,
+        "description": "Explicit field list on create."
+      }
+    ],
+    "reason": "No mass assignment exists: every write lists explicit fields from a Zod-parsed object, and the role is derived server-side. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-negative-quantity",
+    "title": "Gist attack 10: negative or zero quantities",
+    "description": "All numeric inputs are server-validated as positive and bounded: opportunity memberCount, profile numbers, sandbox amountMinor, retentionDays, feasibility integers and enquiry experienceYears.",
+    "claimed_root_cause": "A negative quantity (members, amount, days) is accepted and corrupts state or pricing.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 29,
+        "kind": "entrypoint",
+        "scope": "opportunity schema",
+        "description": "memberCount: z.number().int().positive().max(100000)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 23,
+        "kind": "propagation",
+        "scope": "checkout schema",
+        "description": "amountMinor: z.number().int().positive().max(100000000)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/profiles.ts",
+        "line": 70,
+        "kind": "sink",
+        "scope": "profile schema",
+        "description": "Profile memberCount is likewise int, positive, max 100000."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 29,
+        "description": "Positive bounded memberCount. (memberCount: z.number().int().positive().max(100000).optional(),)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 23,
+        "description": "Positive bounded amount. (amountMinor: z.number().int().positive().max(100000000),)"
+      }
+    ],
+    "reason": "Negative or zero values are rejected by Zod at the boundary on every numeric input checked. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-opportunities-ilike-wildcard",
+    "title": "Prompt H minor: unescaped %/_ in the opportunities ilike search is a vulnerability",
+    "description": "The opportunities search interpolates input.q and input.location into %...% without escaping, unlike the admin enquiry search which escapes. As a vulnerability claim it is disproved: no boundary is crossed.",
+    "claimed_root_cause": "A % or _ in the search query leaks data the caller should not see.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 74,
+        "kind": "entrypoint",
+        "scope": "GET /opportunities handler",
+        "description": "input.q is interpolated into %...% without escaping."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 76,
+        "kind": "propagation",
+        "scope": "GET /opportunities handler",
+        "description": "input.location is interpolated the same way."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 55,
+        "kind": "sink",
+        "scope": "GET /opportunities handler",
+        "description": "The query only ever returns PUBLISHED opportunities, which the unfiltered list already returns to everyone."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 74,
+        "description": "Unescaped ilike pattern."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 76,
+        "description": "Unescaped ilike pattern for location."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 204,
+        "description": "Contrast: the admin search escapes % and _. (const pattern = `%${query.search.replace(/[\\\\%_]/g, \"\\\\$&\")}%`;)"
+      }
+    ],
+    "reason": "A % query returns at most the same PUBLISHED set the unfiltered list already returns, so no additional data is disclosed. It is a correctness nit (a % search matches everything), not a vulnerability. Recorded as a hardening note, not a finding."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-otp-brute-force",
+    "title": "Gist attack 11: login-code (OTP) guessing",
+    "description": "Email OTPs are 6 digits, but guessing is bounded: at most 5 failed attempts per token, a 10-minute expiry, single-use consumption, HMAC binding to the user, and per-account rate limits (10 per 10 minutes for verify, 10 per 15 minutes for login).",
+    "claimed_root_cause": "A 6-digit OTP can be brute-forced because attempts are unlimited.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 16,
+        "kind": "entrypoint",
+        "scope": "EMAIL_OTP_MAX_ATTEMPTS",
+        "description": "EMAIL_OTP_MAX_ATTEMPTS = 5 per token."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 12,
+        "kind": "propagation",
+        "scope": "TOKEN_LIFETIME",
+        "description": "EMAIL_VERIFICATION lifetime is 10 minutes."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-rate-limit.ts",
+        "line": 30,
+        "kind": "sink",
+        "scope": "AUTH_RATE_LIMITS",
+        "description": "LOGIN is limited to 10 attempts per 15 minutes per account (and VERIFY_EMAIL to 10 per 10 minutes)."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 16,
+        "description": "Five attempts per token. (export const EMAIL_OTP_MAX_ATTEMPTS = 5;)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 12,
+        "description": "Ten-minute OTP lifetime. (EMAIL_VERIFICATION: 10 * 60 * 1000,)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-rate-limit.ts",
+        "line": 30,
+        "description": "Login rate limit. (LOGIN: { limit: 10, windowMs: 15 * 60 * 1000 },)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 418,
+        "description": "Conditional single-use consumption. (lt(authTokens.failedAttempts, EMAIL_OTP_MAX_ATTEMPTS),)"
+      }
+    ],
+    "reason": "Five attempts per token plus a 10-minute expiry plus per-account rate limits make guessing a 6-digit code infeasible (at most a handful of guesses per token lifetime). The claim is disproved. (The X-Forwarded-For caveat on IP-keyed limits is a separate needs_validation record.)"
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-passwords-plaintext",
+    "title": "Prompt H claim: passwords are stored in plain text",
+    "description": "Prompt H recorded password hashing as PASS. The claim to test is that passwords are stored or compared in plain text. It is disproved.",
+    "claimed_root_cause": "The password column holds the raw password, or login compares it directly.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 29,
+        "kind": "entrypoint",
+        "scope": "hashPassword",
+        "description": "hashPassword salts with 16 random bytes and derives with scrypt."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 31,
+        "kind": "propagation",
+        "scope": "hashPassword",
+        "description": "scryptSync(password, salt, 64) produces a 64-byte derived key."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 667,
+        "kind": "sink",
+        "scope": "POST /auth/login handler",
+        "description": "Login verifies with the stored salt:derived value and timingSafeEqual, never a plain comparison."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 29,
+        "description": "Hash function. (export function hashPassword(password: string): string {)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 31,
+        "description": "scrypt with a 16-byte random salt. (const derived = scryptSync(password, salt, 64).toString(\"hex\");)"
+      }
+    ],
+    "reason": "Passwords are stored as salt:derived scrypt hashes and compared with timingSafeEqual. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-privacy-status-no-rate-limit",
+    "title": "Candidate: GET /privacy/requests/:reference/status has no rate limit, so status tokens can be brute-forced",
+    "description": "The privacy-request status endpoint carries no rate limit. As a brute-force claim it is disproved for the same reason as the reset token.",
+    "claimed_root_cause": "An attacker can guess privacy-request status tokens because the endpoint is not rate-limited.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/privacy.ts",
+        "line": 599,
+        "kind": "entrypoint",
+        "scope": "GET /privacy/requests/:reference/status handler",
+        "description": "GET /privacy/requests/:reference/status, no rate limit."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 76,
+        "kind": "propagation",
+        "scope": "issueToken",
+        "description": "Status tokens are 32 bytes of crypto-random (2^256 space)."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/privacy.ts",
+        "line": 599,
+        "kind": "sink",
+        "scope": "GET /privacy/requests/:reference/status handler",
+        "description": "The endpoint returns only the request status for a valid token; an invalid token reveals nothing."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/privacy.ts",
+        "line": 599,
+        "description": "Status route. (\"/privacy/requests/:reference/status\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 76,
+        "description": "32-byte random token. (const token = randomBytes(32).toString(\"base64url\");)"
+      }
+    ],
+    "reason": "A 256-bit token cannot be guessed in practice; the endpoint leaks nothing on a wrong guess. The claim is disproved as a vulnerability."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-race-condition-check-then-act",
+    "title": "Gist attack 9: race conditions on check-then-act paths",
+    "description": "Every check-then-act path uses an advisory lock, a conditional update or a unique constraint: enquiry dedup, OTP verify, reset consume, privacy verify, checkout idempotency, webhook events, interest submit, opportunity publish/close and feasibility transitions.",
+    "claimed_root_cause": "Two concurrent requests can both pass a check and both act (double verify, double interest, double payment).",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 418,
+        "kind": "entrypoint",
+        "scope": "POST /auth/verify-email handler",
+        "description": "OTP/reset consumption is a conditional update (unused, unexpired, under the attempt cap) in a single statement."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 526,
+        "kind": "propagation",
+        "scope": "POST /opportunities/:id/interest handler",
+        "description": "Interest submission uses onConflictDoNothing on a unique constraint."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 104,
+        "kind": "sink",
+        "scope": "POST /billing/checkout handler",
+        "description": "Checkout uses a per-user per-key advisory lock, so concurrent checkouts serialise."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 418,
+        "description": "Conditional consume. (lt(authTokens.failedAttempts, EMAIL_OTP_MAX_ATTEMPTS),)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/opportunities.ts",
+        "line": 526,
+        "description": "Idempotent insert. (.onConflictDoNothing({)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 104,
+        "description": "Advisory lock on checkout. (sql`select pg_advisory_xact_lock(hashtextextended(${`sandbox:${req.auth!.userId}:${key}`},0))`,)"
+      }
+    ],
+    "reason": "All the named check-then-act paths are guarded by a lock, a conditional update or a unique constraint. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-registration-creates-admin",
+    "title": "Prompt H claim: registration can create an admin",
+    "description": "Prompt H recorded that registration cannot create an admin. The claim to test is that signup can self-promote to ADMIN. It is disproved.",
+    "claimed_root_cause": "The signup payload lets the caller choose the ADMIN role.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.ts",
+        "line": 1,
+        "kind": "entrypoint",
+        "scope": "REGISTRATION_PARTICIPANTS",
+        "description": "REGISTRATION_PARTICIPANTS lists only SOCIETY, DEVELOPER, PMC and PROFESSIONAL."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "kind": "propagation",
+        "scope": "POST /auth/register handler",
+        "description": "The role is derived server-side from registrationIdentity(input.participantType), never from a client-supplied role field."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.test.ts",
+        "line": 10,
+        "kind": "sink",
+        "scope": "registration participants test",
+        "description": "A test asserts ADMIN is not a registrable participant."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.ts",
+        "line": 1,
+        "description": "Registrable participants exclude ADMIN."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "description": "Role derived server-side. (const identity = registrationIdentity(input.participantType);)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/role-policy.test.ts",
+        "line": 10,
+        "description": "Assertion ADMIN cannot register. (assert.equal(REGISTRATION_PARTICIPANTS.includes(\"ADMIN\" as never), false);)"
+      }
+    ],
+    "reason": "No role field is read from the client at signup; the role is derived server-side from a fixed participant list that excludes ADMIN, and a test pins that. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-reset-password-no-rate-limit",
+    "title": "Candidate: POST /auth/reset-password has no rate limit, so tokens can be brute-forced",
+    "description": "The reset-password route carries no rate limit. As a brute-force claim it is disproved: the token space is too large to guess.",
+    "claimed_root_cause": "An attacker can guess reset tokens because the endpoint is not rate-limited.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 583,
+        "kind": "entrypoint",
+        "scope": "POST /auth/reset-password handler",
+        "description": "POST /auth/reset-password, no rate limit middleware."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 76,
+        "kind": "propagation",
+        "scope": "issueToken",
+        "description": "Reset tokens are 32 bytes of crypto-random (2^256 space), single-use, with an expiry."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 418,
+        "kind": "sink",
+        "scope": "POST /auth/verify-email handler",
+        "description": "Token consumption is a conditional update (unused, unexpired, under the attempt cap), so a used token cannot be replayed."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 583,
+        "description": "Reset route. (router.post(\"/auth/reset-password\", async (request, response, next) => {)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-tokens.ts",
+        "line": 76,
+        "description": "32-byte random token. (const token = randomBytes(32).toString(\"base64url\");)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 418,
+        "description": "Conditional single-use consumption. (lt(authTokens.failedAttempts, EMAIL_OTP_MAX_ATTEMPTS),)"
+      }
+    ],
+    "reason": "Guessing a 256-bit single-use token is infeasible with or without a rate limit; the missing rate limit is at most a minor abuse-control gap (an attacker can trigger reset emails), not a brute-force vulnerability. The claim is disproved as a vulnerability."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-scrypt-params-unpinned",
+    "title": "Prompt H minor: scrypt parameters are unpinned, so password hashing is weak",
+    "description": "hashPassword calls scryptSync(password, salt, 64) without explicit N/r/p, and the password floor is 8 characters. As a vulnerability claim it is disproved.",
+    "claimed_root_cause": "Default scrypt parameters are weak, so hashes are cheap to brute-force.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 29,
+        "kind": "entrypoint",
+        "scope": "hashPassword",
+        "description": "hashPassword(password)."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 31,
+        "kind": "propagation",
+        "scope": "hashPassword",
+        "description": "scryptSync with Node's defaults: N=16384, r=8, p=1."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 31,
+        "kind": "sink",
+        "scope": "hashPassword",
+        "description": "A 64-byte derived key with a 16-byte random salt is produced."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 29,
+        "description": "Hash function."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/session.ts",
+        "line": 31,
+        "description": "scryptSync defaults. (const derived = scryptSync(password, salt, 64).toString(\"hex\");)"
+      }
+    ],
+    "reason": "Node's scryptSync defaults (N=16384, r=8, p=1) are the standard recommended values, and an 8-character floor meets the NIST minimum. Pinning the parameters explicitly is a hardening note, not a vulnerability. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-sql-injection-unvalidated-input",
+    "title": "Prompt H claim: SQL injection through unvalidated input",
+    "description": "Prompt H recorded Zod + Drizzle validation as PASS. The claim to test is that unvalidated input reaches SQL. It is disproved.",
+    "claimed_root_cause": "User input is interpolated into SQL without validation or parameterisation.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "kind": "entrypoint",
+        "scope": "POST /auth/register handler",
+        "description": "Registration input is Zod-parsed before any database use."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 204,
+        "kind": "propagation",
+        "scope": "GET /admin/enquiries handler",
+        "description": "Admin search escapes % and _ before building the ilike pattern."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 104,
+        "kind": "sink",
+        "scope": "POST /billing/checkout handler",
+        "description": "The only raw sql() usage is advisory locks and counters with bound parameters, never user input."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/auth.ts",
+        "line": 281,
+        "description": "Zod-parsed identity before DB use."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 204,
+        "description": "Search wildcards escaped. (const pattern = `%${query.search.replace(/[\\\\%_]/g, \"\\\\$&\")}%`;)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 104,
+        "description": "Raw sql is a parameterised advisory lock. (sql`select pg_advisory_xact_lock(hashtextextended(${`sandbox:${req.auth!.userId}:${key}`},0))`,)"
+      }
+    ],
+    "reason": "Every database route Zod-parses its input first and Drizzle parameterises the queries; the only raw sql() calls are advisory locks, counters and enum lists with bound values. No user input is interpolated into SQL. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-stored-xss-user-content",
+    "title": "Gist attack 1: stored XSS through user content",
+    "description": "User-supplied content (society names, enquiry messages, profile fields) is rendered in React, which escapes all interpolations, and in HTML email, where values are escaped. No user-controlled dangerouslySetInnerHTML exists.",
+    "claimed_root_cause": "User input is rendered as HTML without escaping, so a stored script executes for other users.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/email.ts",
+        "line": 21,
+        "kind": "entrypoint",
+        "scope": "escapeHtml",
+        "description": "escapeHtml escapes user values before they are placed in HTML email."
+      },
+      {
+        "file": "artifacts/renova/src/components/ui/chart.tsx",
+        "line": 78,
+        "kind": "propagation",
+        "scope": "ChartContainer",
+        "description": "The only dangerouslySetInnerHTML in the app injects a <style> built from developer-supplied theme config, not user data, and ChartContainer is unused in the app."
+      },
+      {
+        "file": "artifacts/renova/src/App.tsx",
+        "line": 600,
+        "kind": "sink",
+        "scope": "Overview",
+        "description": "Workspace pages render data through React JSX, which escapes interpolations."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/email.ts",
+        "line": 21,
+        "description": "HTML escaping for email. (function escapeHtml(value: string): string {)"
+      },
+      {
+        "file": "artifacts/renova/src/components/ui/chart.tsx",
+        "line": 78,
+        "description": "The only dangerouslySetInnerHTML (dev config only). (dangerouslySetInnerHTML={{)"
+      }
+    ],
+    "reason": "React escapes every interpolation and email HTML escapes user values; the single dangerouslySetInnerHTML uses developer-supplied config, not user data. The claim is disproved."
+  },
+  {
+    "verdict": "rejected",
+    "fingerprint": "h-upload-validation",
+    "title": "Gist attack 12: uploading a malicious file",
+    "description": "Feasibility document uploads enforce an allowlist (PDF/JPEG/PNG), verify the content by magic bytes, cap files at 10 MB, store them in a private Blob bucket and serve downloads with Content-Disposition: attachment.",
+    "claimed_root_cause": "An attacker uploads an HTML/SVG/script file that executes when another user opens it.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/lib/feasibility-policy.ts",
+        "line": 51,
+        "kind": "entrypoint",
+        "scope": "documentContentMatchesType",
+        "description": "documentContentMatchesType checks the file's magic bytes against the declared type."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/feasibility-policy.ts",
+        "line": 56,
+        "kind": "propagation",
+        "scope": "documentContentMatchesType",
+        "description": "The %PDF- magic check rejects a file that merely claims to be a PDF."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 452,
+        "kind": "sink",
+        "scope": "POST /feasibility/:id/documents handler",
+        "description": "The upload is capped at 10 MB and the stored blob is private."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/lib/feasibility-policy.ts",
+        "line": 51,
+        "description": "Magic-byte validation function. (export function documentContentMatchesType()"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/feasibility-policy.ts",
+        "line": 56,
+        "description": "PDF magic check. (return bytes.length >= 5 && String.fromCharCode(...bytes.slice(0, 5)) === \"%PDF-\";)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/feasibility.ts",
+        "line": 105,
+        "description": "10 MB per-file cap. (const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;)"
+      }
+    ],
+    "reason": "Type allowlist plus magic-byte verification plus private storage plus attachment disposition means an uploaded file cannot be served as executable content. The claim is disproved. (The missing quota on uploads is a separate confirmed low finding.)"
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "legacy-demo-api-unauthenticated",
+    "title": "Unauthenticated legacy demo API: read and write fictional society/project data that the live workspace renders as real",
+    "description": "Six demo endpoints under /api are mounted with no authentication at all: GET /dashboard, GET /projects, POST /projects, GET /projects/:id, GET /professionals and GET /regulations. They read and append to in-memory arrays. POST /projects appends attacker-supplied project data with no rate limit and no size bound, and the live workspace Overview page renders that data as a real society workspace (the demo society 'Kirti Heights CHS' and a named contact). Any anonymous visitor can therefore inject content every other visitor sees, and can grow the process's in-memory arrays without limit.",
+    "root_cause": "The legacy demo router (artifacts/api-server/src/routes/renova.ts) was written as a static prototype and was mounted under /api without any requireAuth() middleware, and the frontend workspace still consumes it as live data.",
+    "intended_behavior": "Demo or prototype data must be clearly separated from production data, must not be writable by anonymous clients, and must not be presented to visitors as a real society's workspace. If demo content is kept, it is read-only and labelled as demo.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/index.ts",
+        "line": 17,
+        "kind": "entrypoint",
+        "scope": "createRouter",
+        "description": "renovaRouter is mounted under /api with no authentication middleware."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/renova.ts",
+        "line": 83,
+        "kind": "propagation",
+        "scope": "POST /projects handler",
+        "description": "POST /projects appends the request body to the in-memory projects array with no auth, no rate limit and no size bound."
+      },
+      {
+        "file": "artifacts/renova/src/App.tsx",
+        "line": 600,
+        "kind": "sink",
+        "scope": "Overview",
+        "description": "The workspace Overview renders the demo data (useGetDashboard) as a real society workspace, so injected content is shown to every visitor."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/renova.ts",
+        "line": 70,
+        "description": "GET /dashboard, no auth. (router.get(\"/dashboard\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/renova.ts",
+        "line": 83,
+        "description": "POST /projects appends to the in-memory array. (router.post(\"/projects\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/renova.ts",
+        "line": 110,
+        "description": "GET /professionals, no auth. (router.get(\"/professionals\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/renova.ts",
+        "line": 116,
+        "description": "GET /regulations, no auth. (router.get(\"/regulations\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/index.ts",
+        "line": 17,
+        "description": "Demo router mounted under /api without auth. (router.use(renovaRouter);)"
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 53,
+        "description": "All routes under /api. (\"/api\",)"
+      },
+      {
+        "file": "artifacts/renova/src/App.tsx",
+        "line": 600,
+        "description": "Overview consumes the demo endpoint as live workspace data. (const dashboard = useGetDashboard();)"
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "authentication_level",
+        "description": "No authentication: the endpoints are reachable by any anonymous client."
+      },
+      {
+        "kind": "data_state",
+        "description": "The demo arrays are process-lifetime in-memory state, so injected rows persist for the life of the process and are served to every visitor."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "No account is needed. POST /api/projects with an arbitrary project object, then open /workspace as any visitor: the injected project appears in the workspace Overview alongside the demo society.",
+      "payloads": [
+        "{\"name\": \"Attacker Society CHS\", \"location\": \"Mumbai\", \"readiness\": 99, \"stage\": \"Live\"} posted to /api/projects"
+      ],
+      "instructions": [
+        "Build a local instance from this exact commit in an isolated environment (never against production).",
+        "POST the payload to /api/projects with no credentials; expect a 2xx response and the project echoed back.",
+        "GET /api/projects with no credentials; expect the injected project in the list.",
+        "Open the workspace Overview page in a browser against the same local instance; expect the injected project to be rendered."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox was available, so no target code was executed). The behaviour is established from source: the routes carry no auth middleware, the POST handler appends to a module-level array, and the frontend Overview renders that endpoint's data. The existence of the unauthenticated write path is unambiguous in source, so confidence is high; the rendering step was not clicked through locally."
+    },
+    "remediation": {
+      "strategy": "Remove the demo API from the production path, or gate it behind admin authentication and make it read-only.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/api-server/src/routes/renova.ts",
+          "fixed_code": "export const renovaRouter = Router();\nrenovaRouter.use(requireAuth(), requireRole(\"ADMIN\"));\n// Gate the whole demo router behind admin auth, or delete it from the /api mount entirely."
+        },
+        {
+          "file_name": "artifacts/api-server/src/routes/index.ts",
+          "fixed_code": "// Remove the demo router from the production API mount:\n// router.use(renovaRouter);"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "high",
+        "reason": "Trivially reachable: no auth, no rate limit, endpoints are called by the shipped frontend so their paths are public knowledge."
+      },
+      "impact": {
+        "score": "medium",
+        "reason": "Anonymous content injection shown to all visitors as a real society workspace, plus unbounded in-memory growth in a long-lived process. No real user data is exposed (the data is fictional) and no script execution is possible (React escapes it), so impact is medium, not high."
+      },
+      "overall_severity": "medium"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "The absence of auth middleware on every cited route and the in-memory append are directly visible in source; only the browser rendering step was not executed locally."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "missing-security-headers",
+    "title": "No security headers on either side: no CSP, HSTS, X-Frame-Options, X-Content-Type-Options or Referrer-Policy",
+    "description": "Neither the frontend host nor the API sets any security headers. artifacts/renova/vercel.json contains only rewrites (no headers section at all), the API sets only Cache-Control: no-store, and index.html carries no CSP meta tag. A repo-wide search for Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy returns zero hits in source. The login and workspace pages can therefore be framed by an attacker page (clickjacking), and there is no CSP backstop if any XSS ever appears.",
+    "root_cause": "Security headers were never configured: no headers section in the frontend's vercel.json and no helmet (or equivalent) middleware in the Express app.",
+    "intended_behavior": "Responses carry a baseline header set: Content-Security-Policy (or at least frame-ancestors), Strict-Transport-Security, X-Frame-Options: DENY or SAMEORIGIN, X-Content-Type-Options: nosniff, and Referrer-Policy, on both the site and the API.",
+    "trace": [
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 1,
+        "kind": "entrypoint",
+        "scope": "vercel.json rewrites",
+        "description": "Frontend hosting config: rewrites only, no headers section."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 55,
+        "kind": "propagation",
+        "scope": "createApp",
+        "description": "The only response header the API sets is Cache-Control: no-store."
+      },
+      {
+        "file": "artifacts/renova/index.html",
+        "line": 1,
+        "kind": "sink",
+        "scope": "index.html",
+        "description": "index.html carries no CSP meta tag (verified by reading the file and by repo-wide header grep)."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 1,
+        "description": "vercel.json has rewrites only; no 'headers' key anywhere in the file."
+      },
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 55,
+        "description": "The API's only response header. (res.setHeader(\"Cache-Control\", \"no-store\");)"
+      },
+      {
+        "file": "artifacts/renova/index.html",
+        "line": 1,
+        "description": "No CSP meta tag in the app shell."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "system_configuration",
+        "description": "Both hosts ship without any security-header configuration."
+      },
+      {
+        "kind": "user_interaction",
+        "description": "Clickjacking needs a victim to interact with an attacker page that frames the login/workspace page."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Host a page that iframes https://nirmaq.in/platform/live (or the workspace) and overlays it with a deceptive control; a signed-in visitor can be tricked into clicking inside the framed page. No CSP means a future XSS would also run without a second layer of defence.",
+      "payloads": [
+        "<iframe src='https://nirmaq.in/platform/live' style='opacity:0;position:absolute'> overlaid with a fake 'Continue' button"
+      ],
+      "instructions": [
+        "Against a local build, fetch / and /api/healthz and inspect response headers: expect no Content-Security-Policy, Strict-Transport-Security, X-Frame-Options or X-Content-Type-Options.",
+        "Load a test page that iframes the local login page: expect it to render (no framing protection).",
+        "After adding headers, repeat: expect the iframe to be blocked and the headers present."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox). Established from source by a repo-wide grep for all six header names (zero hits) and by reading vercel.json and renova-app.ts in full. The absence is unambiguous, so confidence is high."
+    },
+    "remediation": {
+      "strategy": "Add a baseline header set on both hosts; prefer server headers over meta tags.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/renova/vercel.json",
+          "fixed_code": "\"headers\": [\n  {\n    \"source\": \"/(.*)\",\n    \"headers\": [\n      { \"key\": \"Content-Security-Policy\", \"value\": \"default-src 'self'; frame-ancestors 'self'\" },\n      { \"key\": \"Strict-Transport-Security\", \"value\": \"max-age=31536000; includeSubDomains\" },\n      { \"key\": \"X-Frame-Options\", \"value\": \"DENY\" },\n      { \"key\": \"X-Content-Type-Options\", \"value\": \"nosniff\" },\n      { \"key\": \"Referrer-Policy\", \"value\": \"no-referrer\" }\n    ]\n  }\n]"
+        },
+        {
+          "file_name": "artifacts/api-server/src/renova-app.ts",
+          "fixed_code": "app.use((_, res, next) => {\n  res.setHeader(\"Content-Security-Policy\", \"default-src 'self'; frame-ancestors 'self'\");\n  res.setHeader(\"Strict-Transport-Security\", \"max-age=31536000; includeSubDomains\");\n  res.setHeader(\"X-Frame-Options\", \"DENY\");\n  res.setHeader(\"X-Content-Type-Options\", \"nosniff\");\n  res.setHeader(\"Referrer-Policy\", \"no-referrer\");\n  next();\n});"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "medium",
+        "reason": "Framing an attacker page requires a victim to visit it and interact; the missing headers are trivially observable."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Clickjacking of the login/workspace pages and no CSP backstop. No data is exposed on its own; the harm is conditional on a victim interaction or a separate XSS."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Repo-wide grep for all six header names returned zero hits and both host configs were read in full; the absence is directly established."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "neon-backup-recovery-unverified",
+    "title": "Neon backup / recovery and the production database baseline are unverified",
+    "description": "The production database baseline was last verified at migrations 0000-0002; migrations 0003-0008 are pending verification and /api/readyz still reports 503 'Database is not ready'. No backup, point-in-time recovery or retention configuration exists anywhere in the repo (a repo-wide search finds only the privacy retention-policy feature, which is a different thing), and the preflight doc requires an established Neon recovery point before production changes. Whether Neon backups / PITR are enabled on the production branch, and whether the database can be restored, is an owner-only fact that can only be checked in the Neon console. The three read-only Neon SQL Editor queries awaiting Aditi are the same next step.",
+    "claimed_root_cause": "If Neon backups or point-in-time recovery are not enabled on the production branch, a database loss or a bad migration has no recovery path, and the launch would proceed on an unverified schema baseline.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/health.ts",
+        "line": 41,
+        "kind": "entrypoint",
+        "scope": "GET /readyz handler",
+        "description": "/api/readyz checks 25 table/column pairs and reports 503 'Database is not ready'."
+      },
+      {
+        "file": "docs/production-controlled-test-preflight.md",
+        "line": 20,
+        "kind": "propagation",
+        "scope": "production-controlled-test-preflight.md",
+        "description": "Preflight requires an established Neon recovery point/backup before production changes."
+      },
+      {
+        "file": "lib/db/drizzle/meta/_journal.json",
+        "line": 1,
+        "kind": "sink",
+        "scope": "_journal.json",
+        "description": "The journal lists migrations 0000-0008 on main; the production baseline was last verified at 0000-0002, so 0003-0008 are unverified in production."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/health.ts",
+        "line": 41,
+        "description": "Readiness endpoint. (router.get(\"/readyz\", async (_req, res) => {)"
+      },
+      {
+        "file": "docs/production-controlled-test-preflight.md",
+        "line": 20,
+        "description": "Recovery-point requirement for production changes."
+      }
+    ],
+    "blockers": [
+      "deployment: Neon console access is owner-only; backups/PITR status and the production branch's migration state are not visible from the repo.",
+      "data: The three read-only Neon SQL Editor query results (migration history, public tables, columns for enquiries/enquiry_email_jobs/privacy_consent_events/audit_logs/users/auth_sessions) are still awaited from Aditi."
+    ],
+    "validation_plan": {
+      "deployment": "1. In the Neon console, confirm backups / point-in-time recovery are enabled on the production branch and note the retention window.\n2. Run the three read-only queries Aditi was asked to run in the Neon SQL Editor and compare the applied migrations against the journal (0000-0008 on main, 0009 only in PR #35, 0010 provisional).\n3. Confirm /api/readyz returns 200 after the baseline is verified."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "node-brotli-cve-2026-111497-runtime",
+    "title": "Production Node.js version vs CVE-2026-111497 (Node.js Brotli, critical 9.2, CISA KEV): runtime version is unknown",
+    "description": "CVE-2026-111497 ('Node2Shell') is a critical (CVSS 9.2) Brotli decompression flaw in Node.js, added to the CISA Known Exploited Vulnerabilities catalog on 27 Oct 2026 and fixed in Node 22.23.4 / 24.22.1 / 26.12.1 on 21 Oct 2026. The API inflates Brotli request bodies by default (express.json()/urlencoded() with default inflate, renova-app.ts:49-50), so the vulnerable code path exists in source. But no package.json in the repo pins a Node version (no 'engines' field anywhere) and the API server has no vercel.json, so the production Node version is unknown and this cannot be settled from source. The VM used for this audit runs Node v24.22.1 (patched), which says nothing about production.",
+    "claimed_root_cause": "If production runs an unpatched Node version, a malicious Brotli-compressed request body could trigger the CVE-2026-111497 flaw (remote code execution per the advisory).",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 49,
+        "kind": "entrypoint",
+        "scope": "createApp",
+        "description": "express.json() with default inflate accepts Brotli-compressed bodies."
+      },
+      {
+        "file": "artifacts/api-server/package.json",
+        "line": 1,
+        "kind": "propagation",
+        "scope": "package.json",
+        "description": "No 'engines' field pins the Node version (verified: no 'engines' in any repo package.json)."
+      },
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 7,
+        "kind": "sink",
+        "scope": "vercel.json rewrites",
+        "description": "The API is hosted at api-server-delta-teal.vercel.app, whose runtime is configured outside this repo."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 49,
+        "description": "Brotli inflation path exists (default inflate). (app.use(express.json({ limit: \"256kb\", strict: true }));)"
+      },
+      {
+        "file": "artifacts/api-server/package.json",
+        "line": 1,
+        "description": "No engines pin for the Node version."
+      },
+      {
+        "file": "artifacts/renova/vercel.json",
+        "line": 7,
+        "description": "API host is a separate Vercel project. (\"destination\": \"https://api-server-delta-teal.vercel.app/api/:path*\")"
+      }
+    ],
+    "blockers": [
+      "environment: Production Node.js version is not in the repo and cannot be read from source.",
+      "deployment: The Vercel Node.js runtime version for the api-server project must be read from the Vercel dashboard or a deployment log."
+    ],
+    "validation_plan": {
+      "deployment": "1. In the Vercel dashboard, open the api-server project settings and read the Node.js version (or read it from a recent deployment log).\n2. Confirm the version is >=22.23.4, >=24.22.1 or >=26.12.1 (the patched lines). If it is older, upgrade and redeploy.\n3. If the Replit autoscale deployment (.replit) is also live, confirm its Node version too (it declares modules = ['nodejs-24'], which is the 24 line, but the exact patch version is unknown)."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "replit-deployment-live-unknown",
+    "title": "A Replit autoscale deployment is configured (.replit) but it is unknown whether it is live and what it serves",
+    "description": "The repo root contains a .replit file declaring modules = ['nodejs-24'] and deploymentTarget = 'autoscale' with a post-merge hook that runs pnpm install. That means a Replit deployment of this repo may exist alongside the Vercel deployment. If it is live, it is a second public surface serving the same code with different configuration (different environment variables, different CORS origins, different Node patch version, and possibly a different database). Nothing in the repo says whether it is deployed, what URL it has, or what it serves.",
+    "claimed_root_cause": "An undocumented second deployment would be an unreviewed public surface with its own configuration, outside the Vercel-focused review in this audit.",
+    "trace": [
+      {
+        "file": ".replit",
+        "line": 1,
+        "kind": "entrypoint",
+        "scope": ".replit",
+        "description": "modules = ['nodejs-24']: a Replit runtime is declared."
+      },
+      {
+        "file": ".replit",
+        "line": 5,
+        "kind": "propagation",
+        "scope": ".replit",
+        "description": "deploymentTarget = 'autoscale': a Replit deployment is configured."
+      },
+      {
+        "file": "scripts/post-merge.sh",
+        "line": 1,
+        "kind": "sink",
+        "scope": "post-merge.sh",
+        "description": "A post-merge hook runs pnpm install, consistent with a live Replit deployment workflow."
+      }
+    ],
+    "evidence": [
+      {
+        "file": ".replit",
+        "line": 1,
+        "description": "Replit runtime declared. (modules = [\"nodejs-24\"])"
+      },
+      {
+        "file": ".replit",
+        "line": 5,
+        "description": "Autoscale deployment target. (deploymentTarget = \"autoscale\")"
+      },
+      {
+        "file": "scripts/post-merge.sh",
+        "line": 1,
+        "description": "Post-merge hook exists. (#!/bin/bash)"
+      }
+    ],
+    "blockers": [
+      "deployment: Whether the Replit deployment is live, its URL, and what it serves are owner-only facts not in the repo."
+    ],
+    "validation_plan": {
+      "deployment": "1. Aditi (or the operator) confirms whether the Replit deployment is live and, if so, its URL and what it serves.\n2. If it is live, add it to the audit scope (or shut it down if it is not needed) and align its environment variables with production."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "sandbox-products-approval-reference-disclosure",
+    "title": "GET /billing/products returns full product rows, including the internal approvalReference, to any SOCIETY user",
+    "description": "GET /billing/products lets any authenticated SOCIETY user list sandbox products. The handler calls .select() with no column list, so every column is returned, including approvalReference, which the schema marks notNull and which is an internal approval identifier (it is the sandbox analogue of a payment-approval reference). No secret is leaked (it is a reference, not a credential), but internal operational data is disclosed to every society user by default.",
+    "root_cause": "The handler uses an unscoped .select() instead of an explicit column list, so a column that was never meant for the client is returned.",
+    "intended_behavior": "List endpoints return only the fields the caller needs (code, name, amount, currency, active); internal references stay server-side.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 65,
+        "kind": "entrypoint",
+        "scope": "GET /billing/products handler",
+        "description": "GET /billing/products, any authenticated SOCIETY user."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 73,
+        "kind": "propagation",
+        "scope": "GET /billing/products handler",
+        "description": ".select() with no column list returns every column of sandbox_products."
+      },
+      {
+        "file": "lib/db/src/schema/index.ts",
+        "line": 665,
+        "kind": "sink",
+        "scope": "sandboxProducts table",
+        "description": "approvalReference is a notNull internal column (varchar 220) returned in the response."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 65,
+        "description": "Route is SOCIETY-readable. (router.get(\"/billing/products\",)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/sandbox-billing.ts",
+        "line": 73,
+        "description": "Unscoped select. (.select())"
+      },
+      {
+        "file": "lib/db/src/schema/index.ts",
+        "line": 665,
+        "description": "approvalReference column definition. (approvalReference: varchar(\"approval_reference\", { length: 220 }).notNull(),)"
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "authorization_role",
+        "description": "Any authenticated SOCIETY user (the lowest privileged role) can call it."
+      },
+      {
+        "kind": "data_state",
+        "description": "approvalReference is populated (notNull) for every product row."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Sign in as any society user and GET /api/billing/products; every product row includes its approvalReference.",
+      "payloads": [
+        "GET /api/billing/products (authenticated as SOCIETY)"
+      ],
+      "instructions": [
+        "Against a local instance with a seeded society user, sign in and GET /api/billing/products.",
+        "Expect each product object to contain approvalReference.",
+        "After the fix, repeat: expect the field to be absent."
+      ],
+      "observed_result": "NOT executed against a running instance in this run (no OS-enforced sandbox). Established from source: the unscoped .select() and the notNull approvalReference column are both directly visible, so the disclosure follows from the code. Confidence is high on the mechanism; the live response was not observed."
+    },
+    "remediation": {
+      "strategy": "Return only the fields the client needs.",
+      "code_changes": [
+        {
+          "file_name": "artifacts/api-server/src/routes/sandbox-billing.ts",
+          "fixed_code": "const products = await database\n  .select({\n    code: sandboxProducts.code,\n    name: sandboxProducts.name,\n    amountMinor: sandboxProducts.amountMinor,\n    currency: sandboxProducts.currency,\n    active: sandboxProducts.active,\n  })\n  .from(sandboxProducts);"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "high",
+        "reason": "Any society user can call the endpoint; the field is returned by default."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Internal reference disclosure only; approvalReference is not a credential and cannot be used to authorise anything."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Unscoped .select() plus the notNull internal column are directly visible in source."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "trust-proxy-xff-rate-limit-spoofing",
+    "title": "trust proxy: 1 plus IP-keyed rate limits: whether X-Forwarded-For can be spoofed depends on the deployment, and it is unknown",
+    "description": "The app sets trust proxy to 1, so Express takes the client IP from X-Forwarded-For. IP-keyed controls depend on that value: auth rate limits hash ip|email (auth-rate-limit.ts:35-37), the login IP bucket is x10, and the enquiry fingerprint is SHA-256(ip|email). Whether a client-supplied X-Forwarded-For is honoured depends on whether Vercel overwrites the header or appends to it, which is a deployment fact not in the repo. If Vercel appends, an attacker can bypass IP limits by rotating spoofed IPs and can poison a victim IP's bucket (a login denial-of-service for a shared or NAT IP). Account-keyed limits still bind in that case, which bounds the damage.",
+    "claimed_root_cause": "If the deployment appends client-supplied X-Forwarded-For values, request.ip is attacker-controlled and IP-keyed rate limits can be bypassed or weaponised against other users' IPs.",
+    "trace": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 15,
+        "kind": "entrypoint",
+        "scope": "createApp",
+        "description": "app.set('trust proxy', 1): Express trusts the first proxy's X-Forwarded-For."
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-rate-limit.ts",
+        "line": 35,
+        "kind": "propagation",
+        "scope": "authRateLimitSubject",
+        "description": "Auth rate-limit subjects are hashed from the request IP."
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 71,
+        "kind": "sink",
+        "scope": "fingerprint",
+        "description": "The enquiry fingerprint is SHA-256(ip|email), so a spoofed IP creates a fresh rate-limit bucket."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "artifacts/api-server/src/renova-app.ts",
+        "line": 15,
+        "description": "Trust proxy setting. (app.set(\"trust proxy\", 1);)"
+      },
+      {
+        "file": "artifacts/api-server/src/lib/auth-rate-limit.ts",
+        "line": 35,
+        "description": "IP is part of the rate-limit subject. (export function authRateLimitSubject(ip: string, email: string): string {)"
+      },
+      {
+        "file": "artifacts/api-server/src/routes/enquiries.ts",
+        "line": 71,
+        "description": "Fingerprint uses request.ip. (function fingerprint(request: { ip?: string }, email: string): string {)"
+      }
+    ],
+    "blockers": [
+      "deployment: Whether Vercel overwrites or appends X-Forwarded-For for the api-server project is not in the repo and cannot be probed from here (no live-endpoint probing in this run)."
+    ],
+    "validation_plan": {
+      "deployment": "1. Check the Vercel documentation and the api-server deployment logs for how req.ip is derived under a client-supplied X-Forwarded-For (send a test request with a spoofed header to a non-production deployment and observe the logged IP).\n2. If Vercel appends, set trust proxy to the value that matches the actual proxy count, or switch the rate-limit key to a server-derived value."
+    }
+  }
+]
