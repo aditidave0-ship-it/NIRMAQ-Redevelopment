@@ -33,9 +33,9 @@ const steps = [
   },
   {
     title: "Create Your Profile",
-    text: "Register, verify your email and complete your profile.",
+    text: "Registration opens after our checks — start with your society's feasibility first.",
     detail:
-      "Public registration is currently closed while production acceptance checks are completed.",
+      "Public registration is currently closed while production acceptance checks are completed. Your feasibility check and document dashboard work today.",
     icon: ClipboardCheck,
   },
   {
@@ -57,25 +57,25 @@ const audiences = [
   {
     id: "society",
     title: "For Societies",
-    text: "Understand your property. Prepare your society’s next chapter.",
+    text: "Your society's redevelopment, guided end to end — start with a feasibility check.",
     icon: Building2,
   },
   {
     id: "developer",
     title: "For Developers",
-    text: "Discover published society briefs and express interest.",
+    text: "See published society briefs and express interest — the NIRMAQ team makes the introduction.",
     icon: BriefcaseBusiness,
   },
   {
     id: "pmc",
     title: "For PMCs",
-    text: "Bring project management expertise to redevelopment.",
+    text: "Bring project management expertise to societies the team is guiding.",
     icon: ClipboardCheck,
   },
   {
     id: "other",
     title: "For Professionals",
-    text: "Introduce your practice and redevelopment specialization.",
+    text: "Introduce your practice — architects, advocates and specialists the team calls on.",
     icon: UsersRound,
   },
 ];
@@ -115,10 +115,15 @@ export function RenovaHome() {
               <br />
               <em>Reimagined.</em>
             </h1>
-            <p>A smarter, simpler way to navigate redevelopment in Mumbai.</p>
+            <p>
+              NIRMAQ is an independent redevelopment consultant —
+              coordinating between your housing society and the developers,
+              and guiding you from the first feasibility look to the right
+              match.
+            </p>
             <div className="experience-hero-actions">
-              <Link className="experience-button" href="/societies">
-                Explore Your Redevelopment <ArrowRight size={18} />
+              <Link className="experience-button" href="/get-started">
+                Get Started <ArrowRight size={18} />
               </Link>
               <button
                 type="button"
@@ -200,7 +205,7 @@ export function RenovaHome() {
             {audiences.map((item) => (
               <Link
                 key={item.id}
-                href={`/platform/live?mode=start&participant=${item.id}`}
+                href="/get-started"
                 className="experience-audience"
               >
                 <span className="experience-icon">
@@ -209,7 +214,7 @@ export function RenovaHome() {
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
                 <span>
-                  Explore your workspace <ArrowRight size={16} />
+                  Start here <ArrowRight size={16} />
                 </span>
               </Link>
             ))}
@@ -234,7 +239,7 @@ export function RenovaHome() {
             </p>
             <Link
               className="experience-button"
-              href="/feasibility-dashboard"
+              href="/feasibility-check"
             >
               Get Your Society Feasibility <ArrowRight size={17} />
             </Link>
@@ -263,18 +268,18 @@ export function RenovaHome() {
           <div className="experience-benefits">
             {[
               {
-                title: "A workspace for your role",
-                text: "Focus on the information and actions relevant to your society, organization or practice.",
+                title: "Guidance, not just listings",
+                text: "NIRMAQ guides your society through every step — the platform is the tool, the team does the guiding.",
+                icon: Compass,
+              },
+              {
+                title: "One team, both sides",
+                text: "Societies and developers come through the same team, so nothing gets lost between them.",
                 icon: UsersRound,
               },
               {
-                title: "Structured opportunities",
-                text: "Prepare factual society briefs and keep received interests associated with each opportunity.",
-                icon: ClipboardCheck,
-              },
-              {
-                title: "Clear boundaries",
-                text: "Private organization information stays behind authorized account access. Public profiles remain neutral.",
+                title: "Nothing promised without review",
+                text: "No figures or promises without professional review — a feasibility check is a first look, never a commitment.",
                 icon: ShieldCheck,
               },
             ].map((item) => (

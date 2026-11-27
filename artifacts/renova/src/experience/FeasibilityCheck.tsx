@@ -297,6 +297,14 @@ export function FeasibilityCheckPage() {
                 <ArrowRight size={16} />
               </Link>
               <p className="experience-step-note">
+                Prefer to give everything in one place?{" "}
+                <Link href="/feasibility-dashboard">
+                  Give your society&rsquo;s full details on the feasibility
+                  dashboard →
+                </Link>{" "}
+                — the same step, as one record instead of a checklist.
+              </p>
+              <p className="experience-step-note">
                 <button type="button" onClick={handleStartAgain}>
                   Start again with different details →
                 </button>

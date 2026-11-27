@@ -8,6 +8,7 @@ import { FeasibilityCheckPage } from "./experience/FeasibilityCheck";
 import { IntakeFormPage } from "./experience/IntakeForm";
 import { FeasibilityDocumentsPage } from "./experience/FeasibilityDocuments";
 import { FeasibilityDashboardPage } from "./experience/FeasibilityDashboard";
+import { GetStartedPage } from "./experience/GetStarted";
 import { getCanonicalUrl, getPageMeta } from "./experience/page-meta";
 import { PrivacyPage } from "./experience/PrivacyPages";
 import { sendRequirementEnquiry } from "./experience/requirement-enquiry";
@@ -2302,63 +2303,6 @@ function Regulations() {
   );
 }
 
-const publicNav = [
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/ecosystem", label: "Ecosystem" },
-  { href: "/knowledge-centre", label: "Knowledge centre" },
-  { href: "/contact", label: "Contact" },
-  { href: "/platform/live?mode=login", label: "Log in" },
-  { href: "/platform/live?mode=start", label: "Get Started" },
-];
-
-function PublicNavLink({
-  href,
-  children,
-  onClick,
-  className,
-}: {
-  href: string;
-  children: ReactNode;
-  onClick?: () => void;
-  className?: string;
-}) {
-  if (href.startsWith("#"))
-    return (
-      <a href={href} onClick={onClick} className={className}>
-        {children}
-      </a>
-    );
-  return (
-    <Link href={href} onClick={onClick} className={className}>
-      {children}
-    </Link>
-  );
-}
-
-function PublicNavigation({
-  menuOpen,
-  onNavigate,
-}: {
-  menuOpen: boolean;
-  onNavigate: () => void;
-}) {
-  return (
-    <nav
-      className={cn(
-        "stitch-desktop-nav public-mega-nav",
-        menuOpen && "is-open",
-      )}
-      aria-label="NIRMAQ website navigation"
-    >
-      {publicNav.map((item) => (
-        <PublicNavLink key={item.href} href={item.href} onClick={onNavigate}>
-          {item.label}
-        </PublicNavLink>
-      ))}
-    </nav>
-  );
-}
-
 const stakeholderCards = [
   {
     title: "Find a Developer",
@@ -4284,7 +4228,6 @@ function Router() {
     pathname === "/assessment" ||
     pathname === "/join" ||
     pathname.startsWith("/join/") ||
-    pathname === "/get-started" ||
     pathname.startsWith("/projects");
   useEffect(() => {
     if (!legacyApplication) return;
@@ -4293,7 +4236,7 @@ function Router() {
         ? "?view=opportunities"
         : pathname === "/assessment" || pathname.includes("feasibility")
           ? "?view=feasibility"
-          : pathname === "/get-started" || pathname.startsWith("/join")
+          : pathname.startsWith("/join")
             ? "?mode=start"
             : "";
     navigate(`/platform/live${view}`, { replace: true });
@@ -4344,6 +4287,7 @@ function Router() {
     return <FeasibilityDocumentsPage />;
   if (pathname === "/feasibility-dashboard")
     return <FeasibilityDashboardPage />;
+  if (pathname === "/get-started") return <GetStartedPage />;
   if (pathname === "/regulations")
     return (
       <div className="renova-experience">

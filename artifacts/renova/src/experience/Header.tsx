@@ -38,11 +38,12 @@ export function ExperienceHeader() {
           onClick={() => setOpen(false)}
         >
           <a href="/#how-it-works">How it works</a>
+          <Link href="/feasibility-check">Feasibility</Link>
           <Link href="/ecosystem">Ecosystem</Link>
           <Link href="/knowledge-centre">Knowledge centre</Link>
           <a href="/#contact">Contact</a>
           <Link href="/platform/live?mode=login">Log in</Link>
-          <Link className="experience-button" href="/platform/live?mode=start">
+          <Link className="experience-button" href="/get-started">
             Get Started <ArrowRight size={16} />
           </Link>
         </nav>

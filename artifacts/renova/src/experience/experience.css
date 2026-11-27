@@ -282,7 +282,7 @@
   margin: 0;
 }
 .experience-step-detail {
-  background: #f0edf6;
+  background: #eef1f6;
   border-radius: 12px;
   padding: 20px 24px;
   max-width: none !important;
@@ -313,8 +313,8 @@
   width: 54px;
   height: 54px;
   border-radius: 15px;
-  background: #ece7f8;
-  color: #655183;
+  background: #e8edf5;
+  color: #141d39;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1245,6 +1245,26 @@
   }
 }
 
+
+/* Phase 1 (27 Nov 2026, locked theme): the homepage uses the site's own
+   fonts and the locked navy — DM Sans body, Playfair Display headings,
+   ink #141D39 — instead of the near-navy Inter values it shipped with.
+   Scoped to .renova-home-reference so no other page changes. The rules
+   sit after the homepage's own h1/nav rules so they win on order at
+   equal specificity. */
+.renova-home-reference {
+  --ink: #141d39;
+  font-family: var(--app-font-sans);
+}
+.renova-home-reference h2,
+.renova-home-reference h3 {
+  font-family: var(--app-font-serif);
+}
+.renova-home-reference .experience-header nav a,
+.renova-home-reference .experience-hero h1,
+.renova-home-reference .experience-hero .experience-eyebrow {
+  color: #141d39;
+}
 
 /* Intro-video overlay (hero "Discover How It Works" control).
    Deep blue + skin/ivory, matching the homepage/dashboard theme.
