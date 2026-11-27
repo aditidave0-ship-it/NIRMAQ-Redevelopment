@@ -223,6 +223,18 @@
 .live-note svg {
   flex: none;
 }
+/* Prompt K Task 1: the sign-up consent line sits directly above the
+   primary button, not as a footer note. */
+.live-policy-consent {
+  display: block;
+  border-top: 0;
+  padding-top: 0;
+  margin: 4px 0 0;
+}
+.live-policy-consent a {
+  color: #15599b;
+  text-decoration: underline;
+}
 .live-auth-links {
   display: flex;
   flex-wrap: wrap;

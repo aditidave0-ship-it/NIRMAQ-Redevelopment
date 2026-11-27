@@ -64,6 +64,7 @@ export function ExperienceFooter() {
         <Link href="/knowledge-centre">Knowledge centre</Link>
         <Link href="/contact">Contact / Enquiry</Link>
         <Link href="/privacy">Privacy</Link>
+        <Link href="/privacy/request">Privacy request</Link>
         <Link href="/terms">Terms</Link>
         <Link href="/grievance">Grievance contact</Link>
         <Link href="/platform/live?mode=login">Account login</Link>

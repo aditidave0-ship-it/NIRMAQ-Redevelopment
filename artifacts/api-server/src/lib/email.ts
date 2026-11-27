@@ -178,6 +178,72 @@ export function privacyRequestStatusEmail(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Prompt K (Task 3) — breach-notification templates.
+//
+// DRAFT — pending Indian privacy counsel review. These are templates only:
+// there is deliberately NO sending path, trigger or auto-send anywhere in
+// the codebase. A breach notification is sent only as a manual admin action
+// under docs/breach-notification-runbook-2026-11-27.md, after counsel has
+// reviewed this draft. Do not call these functions from any route, job or
+// handler until then.
+// ---------------------------------------------------------------------------
+export type BreachNotificationUserDetails = {
+  reference: string;
+  breachSummary: string;
+  dataInvolved: string;
+  whatToDo: string;
+  contactEmail: string;
+};
+
+export function breachNotificationUserEmail(
+  brand: EmailBrand,
+  details: BreachNotificationUserDetails,
+): Omit<EmailMessage, "to"> {
+  const name = escapeHtml(brand.productName);
+  const reference = escapeHtml(details.reference);
+  const breachSummary = escapeHtml(details.breachSummary);
+  const dataInvolved = escapeHtml(details.dataInvolved);
+  const whatToDo = escapeHtml(details.whatToDo);
+  const contactEmail = escapeHtml(details.contactEmail);
+  return {
+    subject: `Important: a data breach affecting your ${brand.productName} account (${details.reference})`,
+    text: `DRAFT — pending Indian privacy counsel review. Do not send until counsel has reviewed this template.\n\nHello, we are writing to tell you about a data breach that may have affected your ${name} account.\n\nReference: ${details.reference}\n\nWhat happened: ${details.breachSummary}\n\nWhat data was involved: ${details.dataInvolved}\n\nWhat you should do: ${details.whatToDo}\n\nIf you have questions, contact us at ${details.contactEmail} quoting reference ${details.reference}.`,
+    html: `<h1>Important: a data breach affecting your account</h1><p><strong>DRAFT — pending Indian privacy counsel review. Do not send until counsel has reviewed this template.</strong></p><p>Hello, we are writing to tell you about a data breach that may have affected your ${name} account.</p><p><strong>Reference:</strong> ${reference}</p><p><strong>What happened:</strong> ${breachSummary}</p><p><strong>What data was involved:</strong> ${dataInvolved}</p><p><strong>What you should do:</strong> ${whatToDo}</p><p>If you have questions, contact us at ${contactEmail} quoting reference ${reference}.</p>`,
+  };
+}
+
+export type BreachNotificationBoardDetails = {
+  reference: string;
+  breachSummary: string;
+  dataCategories: string;
+  approximatePeopleAffected: string;
+  likelyConsequences: string;
+  measuresTaken: string;
+  contactEmail: string;
+};
+
+export function breachNotificationBoardEmail(
+  brand: EmailBrand,
+  details: BreachNotificationBoardDetails,
+): Omit<EmailMessage, "to"> {
+  const name = escapeHtml(brand.productName);
+  const reference = escapeHtml(details.reference);
+  const breachSummary = escapeHtml(details.breachSummary);
+  const dataCategories = escapeHtml(details.dataCategories);
+  const approximatePeopleAffected = escapeHtml(
+    details.approximatePeopleAffected,
+  );
+  const likelyConsequences = escapeHtml(details.likelyConsequences);
+  const measuresTaken = escapeHtml(details.measuresTaken);
+  const contactEmail = escapeHtml(details.contactEmail);
+  return {
+    subject: `Data breach report — ${brand.productName} (${details.reference})`,
+    text: `DRAFT — pending Indian privacy counsel review. Do not send until counsel has reviewed this template.\n\nDetailed breach report to the Data Protection Board (within 72 hours of becoming aware of the breach).\n\nReference: ${details.reference}\n\nNature of the breach: ${details.breachSummary}\n\nCategories of personal data involved: ${details.dataCategories}\n\nApproximate number of people affected: ${details.approximatePeopleAffected}\n\nLikely consequences: ${details.likelyConsequences}\n\nMeasures taken or proposed to address the breach: ${details.measuresTaken}\n\nContact for follow-up: ${details.contactEmail} (quoting reference ${details.reference}).\n\nSubmitted by ${name}.`,
+    html: `<h1>Data breach report to the Data Protection Board</h1><p><strong>DRAFT — pending Indian privacy counsel review. Do not send until counsel has reviewed this template.</strong></p><p>This is the detailed breach report, sent within 72 hours of becoming aware of the breach.</p><p><strong>Reference:</strong> ${reference}</p><p><strong>Nature of the breach:</strong> ${breachSummary}</p><p><strong>Categories of personal data involved:</strong> ${dataCategories}</p><p><strong>Approximate number of people affected:</strong> ${approximatePeopleAffected}</p><p><strong>Likely consequences:</strong> ${likelyConsequences}</p><p><strong>Measures taken or proposed to address the breach:</strong> ${measuresTaken}</p><p><strong>Contact for follow-up:</strong> ${contactEmail} (quoting reference ${reference}).</p><p>Submitted by ${name}.</p>`,
+  };
+}
+
 class DisabledEmailProvider implements EmailProvider {
   async send(): Promise<EmailAcceptance> {
     const error = new Error("Transactional email delivery is not configured");

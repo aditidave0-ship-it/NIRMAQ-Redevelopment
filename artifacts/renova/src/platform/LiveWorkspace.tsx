@@ -21,6 +21,13 @@ import {
   registrationParticipant,
 } from "../experience/roles";
 import { workspaceApi as api, WorkspaceApiError } from "./workspace-api";
+import {
+  PRIVACY_REQUEST_STATUS_LABELS,
+  privacyAdminNextStatuses,
+  privacyRequestCanBeFulfilled,
+  type PrivacyRequestAdminRow,
+  type PrivacyRequestEvent,
+} from "./privacy-queue";
 import { OpportunityEditor } from "./OpportunityEditor";
 import { SocietyFeasibility, AdminFeasibility } from "./FeasibilityWorkspace";
 import "./workspace-experience.css";
@@ -109,6 +116,19 @@ function Field({
       <span>{label}</span>
       {children}
     </label>
+  );
+}
+
+// Prompt K Task 1 (DPDP launch readiness): the sign-up journey links the
+// policy pages. The link is code; the notice content is not — /privacy and
+// /terms stay drafts pending owner facts + Indian privacy counsel review.
+function PolicyConsentLine() {
+  return (
+    <p className="live-note live-policy-consent">
+      By creating an account you agree to our{" "}
+      <Link href="/privacy">Privacy Policy</Link> and{" "}
+      <Link href="/terms">Terms of Use</Link>.
+    </p>
   );
 }
 
@@ -346,6 +366,7 @@ function AccountForm({ onSignedIn }: { onSignedIn: (user: Account) => void }) {
                 </label>
               ))}
             </fieldset>
+            <PolicyConsentLine />
             <button
               type="button"
               className="live-primary"
@@ -397,6 +418,7 @@ function AccountForm({ onSignedIn }: { onSignedIn: (user: Account) => void }) {
                 creating a NIRMAQ account.
               </span>
             </label>
+            <PolicyConsentLine />
           </>
         )}
         {mode !== "reset" && mode !== "verify" && mode !== "roles" && (
@@ -1856,6 +1878,333 @@ function AdminView() {
   );
 }
 
+// Prompt K Task 2d — admin privacy-request queue view (team-only, ADMIN
+// role). Built on the existing admin API only: GET /admin/privacy-requests,
+// GET /admin/privacy-requests/:id, PATCH with status / note / holdReason /
+// holdReleased. No new endpoints, no API change. The team can review a
+// request, record a legal hold with a reason, record the decision
+// (approve / pause / reject, with a note) and track fulfilment status.
+// Fulfilment stays a recorded admin decision — never automated deletion.
+function AdminPrivacyQueue() {
+  const [items, setItems] = useState<PrivacyRequestAdminRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [selected, setSelected] = useState<PrivacyRequestAdminRow | null>(null);
+  const [history, setHistory] = useState<PrivacyRequestEvent[]>([]);
+  const [decision, setDecision] = useState("");
+  const [note, setNote] = useState("");
+  const [holdReason, setHoldReason] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
+      if (typeFilter) params.set("type", typeFilter);
+      const result = await api<{ requests: PrivacyRequestAdminRow[] }>(
+        `/admin/privacy-requests${params.size ? `?${params}` : ""}`,
+      );
+      setItems(result.requests);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to load privacy requests.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter, typeFilter]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function openRequest(id: string) {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<{
+        request: PrivacyRequestAdminRow;
+        history: PrivacyRequestEvent[];
+      }>(`/admin/privacy-requests/${id}`);
+      setSelected(result.request);
+      setHistory(result.history);
+      setDecision("");
+      setNote("");
+      setHoldReason("");
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to open the privacy request.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function patchSelected(body: Record<string, unknown>) {
+    if (!selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<{ request: PrivacyRequestAdminRow }>(
+        `/admin/privacy-requests/${selected.id}`,
+        { method: "PATCH", body: JSON.stringify(body) },
+      );
+      setSelected(result.request);
+      setItems((current) =>
+        current.map((item) =>
+          item.id === result.request.id ? result.request : item,
+        ),
+      );
+      const detail = await api<{
+        history: PrivacyRequestEvent[];
+      }>(`/admin/privacy-requests/${selected.id}`);
+      setHistory(detail.history);
+      setNote("");
+      setHoldReason("");
+      setDecision("");
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to update the privacy request.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const nextStatuses = selected
+    ? privacyAdminNextStatuses(selected.status).filter(
+        (status) =>
+          status !== "FULFILLED" || privacyRequestCanBeFulfilled(selected),
+      )
+    : [];
+
+  return (
+    <section className="live-panel">
+      <div className="live-panel-intro">
+        <span>Admin privacy queue</span>
+        <h2>Privacy requests</h2>
+        <p>
+          Requests filed through the public privacy-request form and from
+          account settings. Review each request, record any legal hold with a
+          reason, record the decision, and track fulfilment. Fulfilment is a
+          recorded admin decision — erasure happens out of band only after legal
+          review, never automatically.
+        </p>
+      </div>
+      {error && (
+        <p role="alert" className="live-error">
+          {error}
+        </p>
+      )}
+      <form
+        className="live-filter-row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void load();
+        }}
+      >
+        <Field label="Filter by status">
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="">All statuses</option>
+            {Object.keys(PRIVACY_REQUEST_STATUS_LABELS).map((status) => (
+              <option key={status} value={status}>
+                {
+                  PRIVACY_REQUEST_STATUS_LABELS[
+                    status as keyof typeof PRIVACY_REQUEST_STATUS_LABELS
+                  ]
+                }
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Filter by type">
+          <select
+            value={typeFilter}
+            onChange={(event) => setTypeFilter(event.target.value)}
+          >
+            <option value="">All types</option>
+            <option value="ACCESS">Access</option>
+            <option value="CORRECTION">Correction</option>
+            <option value="DELETION">Deletion</option>
+          </select>
+        </Field>
+        <button type="submit" disabled={busy}>
+          Apply filters
+        </button>
+      </form>
+      {loading && <p className="live-muted">Loading privacy requests…</p>}
+      {!loading && !items.length && (
+        <p className="live-muted">No privacy requests match the filters.</p>
+      )}
+      {items.map((item) => (
+        <article className="live-list-card" key={item.id}>
+          <small>
+            {item.reference} · {item.type} ·{" "}
+            {PRIVACY_REQUEST_STATUS_LABELS[item.status]}
+            {item.underHold ? " · ON HOLD" : ""}
+          </small>
+          <h3>{item.email}</h3>
+          <span>
+            Verification: {item.verificationStatus} ·{" "}
+            {new Date(item.createdAt).toLocaleDateString()}
+          </span>
+          {item.details && <p>{item.details}</p>}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void openRequest(item.id)}
+          >
+            Review request
+          </button>
+        </article>
+      ))}
+      {selected && (
+        <div className="live-profile-preview">
+          <div>
+            <UserRound size={20} />
+            <strong>
+              {selected.reference} · {selected.type}
+            </strong>
+            <button type="button" onClick={() => setSelected(null)}>
+              Close
+            </button>
+          </div>
+          <p>
+            <span>Status</span>
+            <strong>
+              {PRIVACY_REQUEST_STATUS_LABELS[selected.status]}
+              {selected.underHold
+                ? ` — on hold: ${selected.holdReason ?? ""}`
+                : ""}
+            </strong>
+          </p>
+          <p>
+            <span>Requester</span>
+            <strong>{selected.email}</strong>
+          </p>
+          <p>
+            <span>Verification</span>
+            <strong>
+              {selected.verificationStatus} (attempts:{" "}
+              {selected.verificationAttempts})
+            </strong>
+          </p>
+          {selected.details && (
+            <p>
+              <span>Details</span>
+              <strong>{selected.details}</strong>
+            </p>
+          )}
+          <Field label="Record a legal hold (reason required)">
+            <input
+              value={holdReason}
+              maxLength={500}
+              placeholder="e.g. Legal review pending — society records under dispute"
+              onChange={(event) => setHoldReason(event.target.value)}
+            />
+          </Field>
+          <div className="live-actions">
+            <button
+              type="button"
+              disabled={busy || holdReason.trim().length < 2}
+              onClick={() =>
+                void patchSelected({ holdReason: holdReason.trim() })
+              }
+            >
+              Record hold
+            </button>
+            {selected.underHold && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void patchSelected({ holdReleased: true })}
+              >
+                Release hold
+              </button>
+            )}
+          </div>
+          {nextStatuses.length > 0 && (
+            <>
+              <Field label="Record a decision">
+                <select
+                  value={decision}
+                  onChange={(event) => setDecision(event.target.value)}
+                >
+                  <option value="">Choose a decision…</option>
+                  {nextStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {PRIVACY_REQUEST_STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Decision note">
+                <input
+                  value={note}
+                  maxLength={2000}
+                  placeholder="What was decided, and why?"
+                  onChange={(event) => setNote(event.target.value)}
+                />
+              </Field>
+              <div className="live-actions">
+                <button
+                  type="button"
+                  className="live-primary"
+                  disabled={busy || !decision}
+                  onClick={() =>
+                    void patchSelected({
+                      status: decision,
+                      ...(note.trim() ? { note: note.trim() } : {}),
+                    })
+                  }
+                >
+                  Record decision
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || note.trim().length < 2}
+                  onClick={() => void patchSelected({ note: note.trim() })}
+                >
+                  Add note only
+                </button>
+              </div>
+            </>
+          )}
+          {history.length > 0 && (
+            <div>
+              <strong>History</strong>
+              {history.map((event) => (
+                <p key={event.id}>
+                  <span>
+                    {new Date(event.createdAt).toLocaleDateString()} ·{" "}
+                    {event.actorType}
+                  </span>
+                  <strong>
+                    {event.action}
+                    {event.note ? ` — ${event.note}` : ""}
+                  </strong>
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 type WorkspaceItem = { id: string; title: string; description: string };
 const itemsFor = (role: Role): WorkspaceItem[] =>
   role === "SOCIETY"
@@ -1975,6 +2324,11 @@ const itemsFor = (role: Role): WorkspaceItem[] =>
                 description: "Review society assessment requests",
               },
               {
+                id: "privacy-requests",
+                title: "Privacy Requests",
+                description: "Review privacy requests, holds and decisions",
+              },
+              {
                 id: "settings",
                 title: "Settings",
                 description: "Account and access information",
@@ -2021,6 +2375,117 @@ function UnavailableFeature({
         Contact NIRMAQ <ArrowRight size={16} />
       </Link>
     </section>
+  );
+}
+
+// Prompt K Task 2b — "Delete my account" (Option A, Aditi, 27 Nov 2026).
+// This files a verified DELETION request to the admin privacy-request
+// queue. It never deletes anything itself: no user/org rows are removed,
+// no sessions are invalidated by the request, and the account stays
+// usable until the request is fulfilled out of band after legal review.
+// Copy promises nothing about backups, server logs or cache.
+function DeleteAccountRequest({ email }: { email: string }) {
+  const [stage, setStage] = useState<"idle" | "confirm" | "done">("idle");
+  const [reference, setReference] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function fileRequest() {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<{ reference: string; status: string }>(
+        "/privacy/requests",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email,
+            type: "DELETION",
+            details: "Delete my account — filed from account settings.",
+          }),
+        },
+      );
+      setReference(result.reference);
+      setStage("done");
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to file the deletion request.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (stage === "done")
+    return (
+      <div role="status">
+        <h3>Deletion request filed.</h3>
+        <p>
+          Reference: <strong>{reference}</strong>. Keep this for your records.
+        </p>
+        <p>
+          The NIRMAQ team reviews your request and confirms what can be done
+          after legal review. Your account stays usable while the request is
+          reviewed. Nothing has been deleted by filing this request.
+        </p>
+      </div>
+    );
+
+  return (
+    <div>
+      <h3>Delete my account</h3>
+      {stage === "idle" ? (
+        <>
+          <p>
+            Ask NIRMAQ to delete the personal data it holds about you. This
+            files a verified deletion request for the team to review.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setStage("confirm");
+              setError("");
+            }}
+          >
+            Delete my account
+          </button>
+        </>
+      ) : (
+        <>
+          <p>
+            Filing this request does not delete anything. The NIRMAQ team
+            reviews it; legal, financial or security holds can pause it; and
+            erasure happens out of band only after legal review. Your account
+            stays usable until the request is fulfilled. The team confirms the
+            scope after legal review.
+          </p>
+          {error && (
+            <p role="alert" className="live-error">
+              {error}
+            </p>
+          )}
+          <div className="live-actions">
+            <button
+              type="button"
+              className="live-primary"
+              disabled={busy}
+              onClick={() => void fileRequest()}
+            >
+              {busy ? "Filing…" : "File a deletion request"}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setStage("idle")}
+            >
+              Keep my account
+            </button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 function ProfessionalProfile() {
@@ -2268,6 +2733,7 @@ export function LiveWorkspace() {
       >
         Sign out to manage password recovery
       </button>
+      <DeleteAccountRequest email={account.email} />
     </section>
   ) : view === "directory" ? (
     <section className="live-panel">
@@ -2308,6 +2774,8 @@ export function LiveWorkspace() {
     <DiscoveryView role={account.role} view={view} />
   ) : account.role === "ADMIN" && view === "enquiries" ? (
     <AdminView />
+  ) : account.role === "ADMIN" && view === "privacy-requests" ? (
+    <AdminPrivacyQueue />
   ) : account.role === "PROFESSIONAL" && view === "opportunities" ? (
     <UnavailableFeature title="Professional Opportunities">
       Opportunity discovery for this role is not yet supported. Your

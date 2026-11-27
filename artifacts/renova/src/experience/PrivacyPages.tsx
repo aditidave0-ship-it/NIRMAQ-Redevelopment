@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { ExperienceFooter, ExperienceHeader } from "./Header";
 
 type PageName = "privacy" | "terms" | "grievance";
@@ -98,6 +99,13 @@ function PrivacyDraft() {
           [INDIAN PRIVACY COUNSEL: review the purposes, legal basis, notice,
           recipients, retention, rights process, security disclosures and
           applicable commencement requirements.]
+        </p>
+      </article>
+      <article>
+        <h3>File a privacy request</h3>
+        <p>
+          Ask NIRMAQ to show, correct or delete the personal data it holds about
+          you. <Link href="/privacy/request">File a privacy request →</Link>
         </p>
       </article>
     </div>

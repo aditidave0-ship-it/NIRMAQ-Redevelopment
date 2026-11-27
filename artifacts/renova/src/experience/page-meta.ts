@@ -93,6 +93,11 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "NIRMAQ | Privacy Policy",
     description: "How NIRMAQ handles your information.",
   },
+  "/privacy/request": {
+    title: "NIRMAQ | File a Privacy Request",
+    description:
+      "Ask NIRMAQ to show, correct or delete the personal data it holds about you — the team reviews every request.",
+  },
   "/terms": {
     title: "NIRMAQ | Terms of Use",
     description: "The terms for using the NIRMAQ website.",

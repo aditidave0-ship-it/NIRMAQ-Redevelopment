@@ -20,6 +20,21 @@ test("getPageMeta: the Get Started picker gets its own search title and descript
   );
 });
 
+test("getPageMeta: the privacy-request page gets its own search title and description", () => {
+  assert.equal(
+    getPageMeta("/privacy/request").title,
+    "NIRMAQ | File a Privacy Request",
+  );
+  assert.match(
+    getPageMeta("/privacy/request").description,
+    /show, correct or delete/,
+  );
+  assert.equal(
+    getCanonicalUrl("/privacy/request"),
+    "https://nirmaq.in/privacy/request",
+  );
+});
+
 test("getPageMeta: the feasibility family gets its own search title and description", () => {
   assert.equal(getPageMeta("/feasibility-check").title, "NIRMAQ | Feasibility Check");
   assert.match(
@@ -93,6 +108,7 @@ test("sitemap.xml: a real sitemap, listing the public pages Google should index"
     "https://nirmaq.in/knowledge-centre/dcpr-2034",
     "https://nirmaq.in/about",
     "https://nirmaq.in/contact",
+    "https://nirmaq.in/privacy/request",
   ]) {
     assert.ok(locs.includes(url), `sitemap is missing ${url}`);
   }
