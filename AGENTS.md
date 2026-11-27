@@ -11,7 +11,7 @@ These standing instructions reflect the owner's decisions. Follow them for all w
 ## Continuity and integration
 - Continue the existing backend implementation and draft PR #24; the requested recovery baseline is commit 866469d. Inspect current branches and PRs before editing. Preserve completed work and coordinate through GitHub.
 - Review overlap with PRs #25, #26 and subsequent backend PRs. Reuse existing authentication, profiles, feasibility, opportunities and enquiries rather than introducing parallel implementations.
-- Focus on backend reliability and controlled testing. Do not start another homepage redesign.
+- Focus on backend reliability and controlled testing. Homepage direction (approved 27 Nov 2026 — Phase 1, PR #66): the homepage and navigation as built in Phase 1 are the approved direction — locked theme (navy #141D39, ivory, DM Sans + Playfair Display, no plum), approved composite hero artwork, one Get Started journey (/get-started), one society front door (the feasibility check first). Future homepage work builds on Phase 1; do not restart the redesign, substitute a different homepage, or re-open the theme.
 
 ## Approved experience
 - Preserve the approved homepage and local intro video deployed through PR #25.

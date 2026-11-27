@@ -38,7 +38,7 @@ export function ExperienceHeader() {
           onClick={() => setOpen(false)}
         >
           <a href="/#how-it-works">How it works</a>
-          <Link href="/feasibility-dashboard">Feasibility</Link>
+          <Link href="/feasibility-check">Feasibility</Link>
           <Link href="/ecosystem">Ecosystem</Link>
           <Link href="/knowledge-centre">Knowledge centre</Link>
           <a href="/#contact">Contact</a>

@@ -116,8 +116,10 @@ export function RenovaHome() {
               <em>Reimagined.</em>
             </h1>
             <p>
-              NIRMAQ guides your housing society through redevelopment, end
-              to end — the middle person between you and the developers.
+              NIRMAQ is an independent redevelopment consultant —
+              coordinating between your housing society and the developers,
+              and guiding you from the first feasibility look to the right
+              match.
             </p>
             <div className="experience-hero-actions">
               <Link className="experience-button" href="/get-started">
@@ -237,7 +239,7 @@ export function RenovaHome() {
             </p>
             <Link
               className="experience-button"
-              href="/feasibility-dashboard"
+              href="/feasibility-check"
             >
               Get Your Society Feasibility <ArrowRight size={17} />
             </Link>
