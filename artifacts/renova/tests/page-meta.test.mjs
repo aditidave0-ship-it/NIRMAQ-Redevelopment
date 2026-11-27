@@ -8,6 +8,18 @@ import {
   getPageMeta,
 } from "../src/experience/page-meta.ts";
 
+test("getPageMeta: the Get Started picker gets its own search title and description", () => {
+  assert.equal(getPageMeta("/get-started").title, "NIRMAQ | Get Started");
+  assert.match(
+    getPageMeta("/get-started").description,
+    /Start with your role/,
+  );
+  assert.equal(
+    getCanonicalUrl("/get-started"),
+    "https://nirmaq.in/get-started",
+  );
+});
+
 test("getPageMeta: the feasibility family gets its own search title and description", () => {
   assert.equal(getPageMeta("/feasibility-check").title, "NIRMAQ | Feasibility Check");
   assert.match(
@@ -76,6 +88,8 @@ test("sitemap.xml: a real sitemap, listing the public pages Google should index"
     "https://nirmaq.in/feasibility-check",
     "https://nirmaq.in/societies/intake-form",
     "https://nirmaq.in/societies/documents",
+    "https://nirmaq.in/feasibility-dashboard",
+    "https://nirmaq.in/get-started",
     "https://nirmaq.in/knowledge-centre/dcpr-2034",
     "https://nirmaq.in/about",
     "https://nirmaq.in/contact",

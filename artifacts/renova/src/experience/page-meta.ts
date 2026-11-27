@@ -69,6 +69,11 @@ const PAGE_META: Record<string, PageMeta> = {
     description:
       "Your society's feasibility dashboard — property and society details, documents, members and carpet areas, in one place. The NIRMAQ team reviews every record sent.",
   },
+  "/get-started": {
+    title: "NIRMAQ | Get Started",
+    description:
+      "Start with your role — housing society, developer, PMC or professional — and see plainly what happens next on NIRMAQ.",
+  },
   "/knowledge-centre/dcpr-2034": {
     title: "NIRMAQ | DCPR 2034 Guide",
     description:
