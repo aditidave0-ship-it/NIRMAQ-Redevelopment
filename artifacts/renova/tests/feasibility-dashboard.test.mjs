@@ -5,14 +5,12 @@ import {
   DEMO_DASHBOARD,
   EMPTY_DASHBOARD_ANSWERS,
   EMPTY_DASHBOARD_CONTACT,
-  EMPTY_TEAM_SECTION_STATUSES,
   buildDashboardEnquiryDetails,
   carpetTotalSqft,
   dashboardReadiness,
   isSectionGiven,
   membersTotal,
   plotAreaSqft,
-  teamDashboardReadiness,
   validateDashboardSend,
 } from "../src/experience/feasibility-dashboard.ts";
 import { buildRequirementEnquiryPayload } from "../src/experience/requirement-enquiry.ts";
@@ -151,30 +149,6 @@ test("the enquiry brief carries every section and lists file names, never the fi
   assert.equal(payload.organizationName, "Dharma Nagar CHSL, New Manoj CHSL");
   assert.equal(payload.email, "secretary@society.in");
   assert.equal(payload.consent, true);
-});
-
-test("team readiness tracks verified sections; notes never block", () => {
-  const answers = {
-    ...DEMO_DASHBOARD.answers,
-    contactPerson: "Anita Desai",
-  };
-  const fresh = teamDashboardReadiness(answers, EMPTY_TEAM_SECTION_STATUSES);
-  assert.equal(fresh.verifiedSections, 0);
-  assert.deepEqual(
-    fresh.blocking.map((section) => section.id),
-    ["basic", "documents", "members"],
-  );
-
-  const verified = teamDashboardReadiness(answers, {
-    ...EMPTY_TEAM_SECTION_STATUSES,
-    basic: "verified",
-    members: "verified",
-  });
-  assert.equal(verified.verifiedSections, 2);
-  assert.deepEqual(
-    verified.blocking.map((section) => section.id),
-    ["documents"],
-  );
 });
 
 test("the dashboard has four sections in the file's order", () => {

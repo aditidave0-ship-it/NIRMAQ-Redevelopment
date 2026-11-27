@@ -11,32 +11,23 @@ import {
 import { ExperienceFooter, ExperienceHeader } from "./Header";
 import { sendRequirementEnquiry } from "./requirement-enquiry";
 import {
-  DASHBOARD_SECTIONS,
   DEMO_DASHBOARD,
   DISTRICT_OPTIONS,
   EMPTY_DASHBOARD_ANSWERS,
   EMPTY_DASHBOARD_CONTACT,
-  EMPTY_TEAM_SECTION_STATUSES,
   PROPERTY_CARD_OPTIONS,
   ROAD_WIDTH_OPTIONS,
   TALUKA_OPTIONS,
-  TEAM_SECTION_STATUS_LABELS,
   buildDashboardEnquiryDetails,
   carpetTotalSqft,
   dashboardReadiness,
   isMapsLink,
-  isSectionGiven,
   membersTotal,
-  teamDashboardReadiness,
   validateDashboardSend,
 } from "./feasibility-dashboard";
 import type {
   DashboardAnswers,
   DashboardContact,
-  DashboardSection,
-  DashboardSectionId,
-  TeamSectionStatus,
-  TeamSectionStatuses,
 } from "./feasibility-dashboard";
 
 /**
@@ -44,11 +35,9 @@ import type {
  *
  * The society contact-person dashboard — the standalone file Aditi
  * sent on 27 Nov 2026, as a page on the site in its approved no-box
- * "Society File" look. Two views of the same record — the society
- * fills it in, and the NIRMAQ team tracks it (marking each section
- * verified as it is checked). The team view is a preview of the
- * record on this device, labelled as such: the record itself reaches
- * the team through the enquiry, at info@nirmaq.in.
+ * "Society File" look. The society fills it in here. The NIRMAQ
+ * team sees the record through the enquiry, at info@nirmaq.in —
+ * there is no team view on this page (Aditi, 27 Nov 2026).
  *
  * Honest about what this page does and does not do: the working
  * record is saved on the visitor's own device only while they
@@ -61,15 +50,12 @@ import type {
  * added up, nothing more.
  */
 
-type DashboardView = "society" | "team";
-
 const STORAGE_KEY = "nirmaq.feasibility-dashboard.v1";
 const FILE_ACCEPT = "image/*,.pdf";
 
 type SavedState = {
   answers: DashboardAnswers;
   contact: DashboardContact;
-  teamStatuses: TeamSectionStatuses;
   /** True while the Dharma Nagar example details are loaded. */
   demoLoaded: boolean;
 };
@@ -78,7 +64,6 @@ function loadSavedState(): SavedState {
   const empty: SavedState = {
     answers: EMPTY_DASHBOARD_ANSWERS,
     contact: EMPTY_DASHBOARD_CONTACT,
-    teamStatuses: EMPTY_TEAM_SECTION_STATUSES,
     demoLoaded: false,
   };
   try {
@@ -105,13 +90,6 @@ function loadSavedState(): SavedState {
           ? parsed.contact
           : {}),
       },
-      teamStatuses: {
-        ...EMPTY_TEAM_SECTION_STATUSES,
-        ...(typeof parsed.teamStatuses === "object" &&
-        parsed.teamStatuses !== null
-          ? parsed.teamStatuses
-          : {}),
-      },
       demoLoaded: parsed.demoLoaded === true,
     };
   } catch {
@@ -123,11 +101,7 @@ export function FeasibilityDashboardPage() {
   const [saved] = useState(loadSavedState);
   const [answers, setAnswers] = useState<DashboardAnswers>(saved.answers);
   const [contact, setContact] = useState<DashboardContact>(saved.contact);
-  const [teamStatuses, setTeamStatuses] = useState<TeamSectionStatuses>(
-    saved.teamStatuses,
-  );
   const [demoLoaded, setDemoLoaded] = useState(saved.demoLoaded);
-  const [view, setView] = useState<DashboardView>("society");
   const [sendErrors, setSendErrors] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sentReference, setSentReference] = useState<string | null>(null);
@@ -137,16 +111,15 @@ export function FeasibilityDashboardPage() {
     try {
       window.localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ answers, contact, teamStatuses, demoLoaded }),
+        JSON.stringify({ answers, contact, demoLoaded }),
       );
     } catch {
       // Saving on this device is a convenience, not the handover — a
       // full or blocked local store must never break the page.
     }
-  }, [answers, contact, teamStatuses, demoLoaded]);
+  }, [answers, contact, demoLoaded]);
 
   const readiness = dashboardReadiness(answers);
-  const team = teamDashboardReadiness(answers, teamStatuses);
   const members = membersTotal(answers);
   const carpetTotal = carpetTotalSqft(answers);
 
@@ -216,10 +189,6 @@ export function FeasibilityDashboardPage() {
     }));
   }
 
-  function setTeamStatus(id: DashboardSectionId, status: TeamSectionStatus) {
-    setTeamStatuses((current) => ({ ...current, [id]: status }));
-  }
-
   async function handleSend(event: FormEvent) {
     event.preventDefault();
     const errors = validateDashboardSend(answers, contact);
@@ -241,26 +210,6 @@ export function FeasibilityDashboardPage() {
     } finally {
       setSending(false);
     }
-  }
-
-  function sectionStatus(section: DashboardSection): {
-    label: string;
-    className: string;
-  } {
-    if (teamStatuses[section.id] === "verified")
-      return {
-        label: "Verified by NIRMAQ team",
-        className: "experience-document-status--verified",
-      };
-    if (isSectionGiven(section.id, answers))
-      return {
-        label: "Given — awaiting check",
-        className: "experience-document-status--given",
-      };
-    return {
-      label: "Not given yet",
-      className: "experience-document-status--pending",
-    };
   }
 
   function renderFileField(
@@ -306,59 +255,6 @@ export function FeasibilityDashboardPage() {
     );
   }
 
-  function renderTeamSummary(section: DashboardSection) {
-    switch (section.id) {
-      case "basic":
-        return (
-          <p>
-            {answers.societyName.trim() || "Society not named yet"} — CTS{" "}
-            {answers.ctsNumber.trim() || "not given yet"},{" "}
-            {answers.district.trim() || "district not given yet"}
-            {answers.contactPerson.trim()
-              ? ` — contact: ${answers.contactPerson.trim()}`
-              : ""}
-            .
-          </p>
-        );
-      case "documents":
-        return (
-          <p>
-            CTS record: {answers.ctsRecord.trim() || "not given yet"} ·
-            Property card: {answers.propertyCard.trim() || "not given yet"} ·{" "}
-            {answers.conveyanceFiles.length} conveyance file
-            {answers.conveyanceFiles.length === 1 ? "" : "s"},{" "}
-            {answers.dpRemarkFiles.length} DP remark file
-            {answers.dpRemarkFiles.length === 1 ? "" : "s"} — files to
-            arrive by email to info@nirmaq.in.
-          </p>
-        );
-      case "members":
-        return members === null ? (
-          <p className="experience-step-note">Not given yet.</p>
-        ) : (
-          <p>
-            {answers.resMembers.trim() || "0"} residential,{" "}
-            {answers.comMembers.trim() || "0"} commercial —{" "}
-            <strong>{members} members in total</strong>
-            {carpetTotal !== null && (
-              <>
-                {" "}
-                · total carpet area{" "}
-                <strong>{carpetTotal.toLocaleString("en-IN")} sq.ft</strong>
-              </>
-            )}
-            .
-          </p>
-        );
-      case "additional":
-        return answers.additionalInfo.trim() ? (
-          <p>{answers.additionalInfo.trim()}</p>
-        ) : (
-          <p className="experience-step-note">Nothing written yet.</p>
-        );
-    }
-  }
-
   return (
     <div className="renova-experience">
       <ExperienceHeader />
@@ -397,36 +293,7 @@ export function FeasibilityDashboardPage() {
           enquiry system; the files themselves you email to info@nirmaq.in.
         </p>
 
-        <div
-          className="experience-view-toggle no-print"
-          role="group"
-          aria-label="Dashboard view"
-        >
-          <button
-            type="button"
-            className="experience-button"
-            aria-pressed={view === "society"}
-            onClick={() => setView("society")}
-          >
-            Society view
-          </button>
-          <button
-            type="button"
-            className="experience-button"
-            aria-pressed={view === "team"}
-            onClick={() => setView("team")}
-          >
-            Team view
-          </button>
-        </div>
-        <p className="experience-step-note no-print">
-          {view === "society"
-            ? "Society view — your committee fills in each section."
-            : "Team view — the NIRMAQ team tracks each society's record and marks each section verified as it is checked."}
-        </p>
-
-        {view === "society" ? (
-          <>
+        <>
             {demoLoaded && (
               <div className="experience-demo-banner no-print" role="status">
                 <p>
@@ -924,110 +791,7 @@ export function FeasibilityDashboardPage() {
               </button>
             </p>
           </>
-        ) : (
-          <>
-            <section
-              className="experience-tentative-result"
-              aria-label="Team tracking summary"
-            >
-              <ClipboardCheck size={26} />
-              <span className="experience-eyebrow">
-                Team tracking —{" "}
-                {answers.societyName.trim() || "Society not named yet"}
-              </span>
-              <h3>
-                {team.verifiedSections} of {team.sectionsTotal} sections
-                verified
-              </h3>
-              <p>
-                {readiness.sectionsGiven} of {readiness.sectionsTotal}{" "}
-                sections given by the society.
-              </p>
-              {team.blocking.length === 0 ? (
-                <p>
-                  Nothing is blocking the team&apos;s review — the team can
-                  start on this society&apos;s feasibility.
-                </p>
-              ) : (
-                <ul>
-                  {team.blocking.map((section) => (
-                    <li key={section.id}>
-                      Still blocking: {section.title} —{" "}
-                      {isSectionGiven(section.id, answers)
-                        ? "given, not verified yet"
-                        : "not given yet"}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="experience-tentative-disclaimer">
-                Team view — preview. In the live system the team sees every
-                society here, and marks each section verified as it is
-                checked.
-              </p>
-            </section>
 
-            <div className="experience-dashboard-list">
-              {DASHBOARD_SECTIONS.map((section) => {
-                const status = sectionStatus(section);
-                return (
-                  <section
-                    className="experience-dashboard-section"
-                    key={section.id}
-                    aria-label={section.title}
-                  >
-                    <div className="experience-document-head">
-                      <h2>
-                        <span className="experience-dashboard-number">
-                          {section.number}
-                        </span>{" "}
-                        {section.title}
-                      </h2>
-                      <span
-                        className={`experience-document-status ${status.className}`}
-                      >
-                        {status.label}
-                      </span>
-                    </div>
-                    {renderTeamSummary(section)}
-                    <p className="experience-step-note">
-                      {TEAM_SECTION_STATUS_LABELS[teamStatuses[section.id]]}.
-                    </p>
-                    <div className="experience-document-actions no-print">
-                      <button
-                        type="button"
-                        className="experience-button"
-                        aria-pressed={teamStatuses[section.id] === "verified"}
-                        onClick={() => setTeamStatus(section.id, "verified")}
-                      >
-                        Mark verified
-                      </button>
-                      <button
-                        type="button"
-                        className="experience-button"
-                        aria-pressed={
-                          teamStatuses[section.id] === "needs_again"
-                        }
-                        onClick={() =>
-                          setTeamStatus(section.id, "needs_again")
-                        }
-                      >
-                        Ask for another copy
-                      </button>
-                      <button
-                        type="button"
-                        className="experience-text-button"
-                        onClick={() => setTeamStatus(section.id, "awaiting")}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          </>
-        )}
       </main>
       <ExperienceFooter />
     </div>
