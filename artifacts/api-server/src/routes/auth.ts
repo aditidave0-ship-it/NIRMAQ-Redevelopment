@@ -161,6 +161,39 @@ async function rateLimitAuthRequest(
   );
 }
 
+async function rateLimitResetPassword(
+  database: ReturnType<typeof getDb>,
+  request: { ip?: string },
+  token: string,
+) {
+  // Prompt L, Task 1 — the reset-password route had no limit. Two buckets,
+  // same shape as rateLimitAuthRequest: a per-IP bucket at 10x and a
+  // per-token bucket at the policy limit. The per-token bucket is keyed by
+  // the sha256 of the token, so the raw token is never stored — and because
+  // each guess uses a different token value, the per-IP bucket is the one
+  // that binds a guessing flood. The token is 32–256 chars, so brute force
+  // is infeasible either way; the limit bounds floods and DB load.
+  // /auth/logout is deliberately NOT limited: clearSession only deletes the
+  // presented session, creates nothing and sends nothing, and it cannot
+  // invalidate another user's session without that user's cookie. See
+  // docs/predeploy-security-checks-2026-11-28.md.
+  await enforceAuthRateLimit(
+    database,
+    "RESET_PASSWORD",
+    authRateLimitSubject(request.ip || "unknown", "*"),
+    {
+      ...AUTH_RATE_LIMITS.RESET_PASSWORD,
+      limit: AUTH_RATE_LIMITS.RESET_PASSWORD.limit * 10,
+    },
+  );
+  await enforceAuthRateLimit(
+    database,
+    "RESET_PASSWORD",
+    authRateLimitSubject("reset-token", token),
+    AUTH_RATE_LIMITS.RESET_PASSWORD,
+  );
+}
+
 async function replaceVerificationOtp(
   database: ReturnType<typeof getDb>,
   userId: string,
@@ -584,6 +617,7 @@ router.post("/auth/reset-password", async (request, response, next) => {
   try {
     const input = resetPasswordSchema.parse(request.body);
     const database = requireDb();
+    await rateLimitResetPassword(database, request, input.token);
     const now = new Date();
     const [record] = await database
       .select({
