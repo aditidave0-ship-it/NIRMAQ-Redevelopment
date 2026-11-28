@@ -154,3 +154,16 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+  # Prompt L (28 Nov 2026): security overrides for the pnpm audit findings.
+  # body-parser is deliberately NOT overridden here — J finding F1, gated on
+  # the F1/F4/F7 addendum decision. Express stays ^5.2.1.
+  # qs 6.16.1 covers GHSA-x5fp, GHSA-4mjr and GHSA-6pq8 (patched >=6.16.1).
+  qs: "6.16.1"
+  # proxy-addr 2.0.8 fixes CVE-2026-90711 (GHSA-jqcg-44mw-7w3h, critical).
+  proxy-addr: "2.0.8"
+  # undici 6.29.1 fixes five advisories (three high, two moderate) via @vercel/blob.
+  undici: "6.29.1"
+  # zod 4.6.6 fixes GHSA-mrhx-c7xc-m3w5 for the @vercel/cli-config copy only.
+  # The lib/api-zod copy stays on zod v3 (catalog) — a v3 to v4 migration of
+  # the validation layer is a separate decision, not part of this prompt.
+  "@vercel/cli-config>zod": "4.6.6"

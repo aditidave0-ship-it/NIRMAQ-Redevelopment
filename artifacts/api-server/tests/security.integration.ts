@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import express, { type ErrorRequestHandler } from "express";
 import cookieParser from "cookie-parser";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   engine,
   db,
@@ -13,7 +14,10 @@ import {
   organizationMembers,
   authSessions,
   authTokens,
+  authRateLimits,
   enquiries,
+  feasibilityRequests,
+  feasibilityDocuments,
 } from "./database";
 import auth from "../src/routes/auth";
 import renovaRouter from "../src/routes/renova";
@@ -33,6 +37,14 @@ import { testSandboxAndEmail } from "./sandbox-delivery";
 import sandboxBillingRouter from "../src/routes/sandbox-billing";
 import emailJobsRouter from "../src/routes/email-jobs";
 import { testAuthDelivery } from "./auth-delivery";
+// Prompt L — the standard tier is proven through the production router
+// composition (routes/index.ts), and document uploads through the Blob stub.
+import routes from "../src/routes/index";
+import {
+  authRateLimitSubject,
+  rateLimitWindowStart,
+} from "../src/lib/auth-rate-limit";
+import { putCalls, resetPutCalls } from "./blob-stub";
 
 const previousOtpSecret = process.env.RENOVA_AUTH_TOKEN_SECRET;
 process.env.RENOVA_AUTH_TOKEN_SECRET =
@@ -83,6 +95,30 @@ await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
 const address = server.address();
 assert.ok(address && typeof address !== "string");
 const origin = `http://127.0.0.1:${address.port}`;
+// Prompt L — a second app on the production router composition, so the
+// standard tier is proven through the real wiring (routes/index.ts mounts
+// standardRateLimit after health, before every other router). trust proxy: 1
+// lets the tests set the client IP with X-Forwarded-For, which is how the
+// per-IP buckets and the IP-rotation case are exercised. The main app above
+// has no trust proxy and no standard tier: its request volume exceeds the
+// per-IP tier, and its routers are mounted individually.
+const miniApp = express();
+miniApp.set("trust proxy", 1);
+miniApp.use(express.json(), cookieParser());
+miniApp.use("/api", routes);
+const miniErrors: ErrorRequestHandler = (error, _request, response, _next) => {
+  response
+    .status(error.name === "ZodError" ? 400 : (error.status ?? 500))
+    .json({ error: "Test request rejected" });
+};
+miniApp.use(miniErrors);
+const miniServer = createServer(miniApp);
+await new Promise<void>((resolve) =>
+  miniServer.listen(0, "127.0.0.1", resolve),
+);
+const miniAddress = miniServer.address();
+assert.ok(miniAddress && typeof miniAddress !== "string");
+const miniOrigin = `http://127.0.0.1:${miniAddress.port}`;
 let checks = 0;
 async function request(
   path: string,
@@ -1017,6 +1053,467 @@ try {
     401,
   );
   checks++;
+  // Prompt L — standard tier, feasibility quotas, reset-password limit.
+  // Document uploads go through the @vercel/blob stub (tests/blob-stub.ts),
+  // so no real Blob object is ever written; the stub's putCalls prove it.
+  const previousBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  process.env.BLOB_READ_WRITE_TOKEN = "test-only-blob-token";
+  const pdf = Buffer.from("%PDF-1.4\nTEST ONLY document\n");
+  async function uploadDocument(
+    targetOrigin: string,
+    cookie: string,
+    requestId: string,
+    body: Buffer,
+    contentType = "application/pdf",
+    ip?: string,
+  ) {
+    return fetch(
+      targetOrigin +
+        `/api/feasibility/${requestId}/documents?fileName=${encodeURIComponent("test-only.pdf")}&category=${encodeURIComponent("TEST ONLY")}`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": contentType,
+          cookie,
+          ...(ip ? { "x-forwarded-for": ip } : {}),
+        },
+        body,
+      },
+    );
+  }
+  async function miniRequest(
+    path: string,
+    method = "GET",
+    cookie = "",
+    body?: unknown,
+    ip?: string,
+  ) {
+    return fetch(miniOrigin + "/api" + path, {
+      method,
+      headers: {
+        "content-type": "application/json",
+        cookie,
+        ...(ip ? { "x-forwarded-for": ip } : {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+  async function seedRateLimitBucket(
+    action: string,
+    subject: string,
+    count: number,
+  ) {
+    // Seed both the current minute and the next, so the test survives a
+    // minute-boundary rollover between seeding and requesting. The upsert
+    // matters for the global bucket, which earlier mini-app requests have
+    // already incremented in the current window.
+    const now = new Date();
+    const windowMs = 60 * 1000;
+    for (const offset of [0, windowMs]) {
+      await db
+        .insert(authRateLimits)
+        .values({
+          action,
+          subjectHash: subject,
+          windowStartedAt: rateLimitWindowStart(
+            new Date(now.getTime() + offset),
+            windowMs,
+          ),
+          requestCount: count,
+        })
+        .onConflictDoUpdate({
+          target: [
+            authRateLimits.action,
+            authRateLimits.subjectHash,
+            authRateLimits.windowStartedAt,
+          ],
+          set: { requestCount: count },
+        });
+    }
+  }
+  // Task 1 (F6, request half) — a society may create 5 feasibility requests
+  // a day; the 6th is refused and creates nothing.
+  const q = await account("SOCIETY", 90);
+  const [qSociety] = await db
+    .select()
+    .from(societies)
+    .where(eq(societies.organizationId, q.org.id));
+  for (let i = 1; i <= 5; i++) {
+    assert.equal(
+      (await request("/feasibility", "POST", q.cookie, details)).status,
+      201,
+      `feasibility create ${i} of 5`,
+    );
+    checks++;
+  }
+  assert.equal(
+    (await request("/feasibility", "POST", q.cookie, details)).status,
+    429,
+    "the 6th feasibility request in a day is refused",
+  );
+  checks++;
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(feasibilityRequests)
+        .where(eq(feasibilityRequests.societyId, qSociety.id))
+    ).length,
+    5,
+    "a refused feasibility create writes no row",
+  );
+  checks++;
+  // Task 3 (F6, document half) + Task 4 upload-guard re-checks. The guard
+  // refusals run first: they happen before the quota check, so an invalid
+  // upload consumes no quota.
+  const d = await account("SOCIETY", 91);
+  resetPutCalls();
+  const docFeasible = await request("/feasibility", "POST", d.cookie, details);
+  assert.equal(docFeasible.status, 201);
+  checks++;
+  const docRequest = ((await docFeasible.json()) as any).request;
+  // PNG declared, PDF bytes inside: the magic-byte check refuses it.
+  assert.equal(
+    (await uploadDocument(origin, d.cookie, docRequest.id, pdf, "image/png"))
+      .status,
+    400,
+  );
+  checks++;
+  // A type outside the allowlist is refused before the body is read.
+  assert.equal(
+    (
+      await uploadDocument(
+        origin,
+        d.cookie,
+        docRequest.id,
+        Buffer.from("plain text"),
+        "text/plain",
+      )
+    ).status,
+    415,
+  );
+  checks++;
+  // Over the 10 MB per-file limit.
+  assert.equal(
+    (
+      await uploadDocument(
+        origin,
+        d.cookie,
+        docRequest.id,
+        Buffer.concat([pdf, Buffer.alloc(10 * 1024 * 1024)]),
+      )
+    ).status,
+    413,
+  );
+  checks++;
+  assert.equal(putCalls.length, 0, "refused uploads wrote no Blob object");
+  checks++;
+  // A valid upload lands in private Blob storage with its SHA-256 recorded.
+  assert.equal(
+    (await uploadDocument(origin, d.cookie, docRequest.id, pdf)).status,
+    201,
+  );
+  checks++;
+  assert.equal(putCalls.length, 1);
+  checks++;
+  assert.equal(putCalls[0].access, "private");
+  checks++;
+  const [firstDoc] = await db
+    .select()
+    .from(feasibilityDocuments)
+    .where(eq(feasibilityDocuments.requestId, docRequest.id));
+  assert.equal(
+    firstDoc.checksumSha256,
+    createHash("sha256").update(pdf).digest("hex"),
+  );
+  checks++;
+  // Uploads 2–8 succeed; the count after 8 proves the rows land.
+  for (let i = 2; i <= 8; i++) {
+    assert.equal(
+      (await uploadDocument(origin, d.cookie, docRequest.id, pdf)).status,
+      201,
+      `document upload ${i} of 20`,
+    );
+    checks++;
+  }
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(feasibilityDocuments)
+        .where(eq(feasibilityDocuments.requestId, docRequest.id))
+    ).length,
+    8,
+    "document count after 8 uploads",
+  );
+  checks++;
+  assert.equal(putCalls.length, 8, "Blob put calls after 8 uploads");
+  checks++;
+  // Uploads 9–20 succeed; the 21st is refused and writes nothing.
+  for (let i = 9; i <= 20; i++) {
+    assert.equal(
+      (await uploadDocument(origin, d.cookie, docRequest.id, pdf)).status,
+      201,
+      `document upload ${i} of 20`,
+    );
+    checks++;
+  }
+  assert.equal(
+    (await uploadDocument(origin, d.cookie, docRequest.id, pdf)).status,
+    429,
+    "the 21st document on one request is refused",
+  );
+  checks++;
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(feasibilityDocuments)
+        .where(eq(feasibilityDocuments.requestId, docRequest.id))
+    ).length,
+    20,
+    "a refused upload writes no row",
+  );
+  checks++;
+  assert.equal(putCalls.length, 20, "a refused upload writes no Blob object");
+  checks++;
+  // The 21st refusal above comes from the daily burst bucket. Prove the
+  // hard count cap binds on its own: empty the burst bucket and try again —
+  // the bucket allows it, the count (20 of 20) still refuses it.
+  await db
+    .delete(authRateLimits)
+    .where(
+      and(
+        eq(authRateLimits.action, "FEASIBILITY_DOCUMENT"),
+        eq(
+          authRateLimits.subjectHash,
+          authRateLimitSubject("feasibility-request", docRequest.id),
+        ),
+      ),
+    );
+  assert.equal(
+    (await uploadDocument(origin, d.cookie, docRequest.id, pdf)).status,
+    429,
+    "the count cap refuses a 21st document even with a fresh burst bucket",
+  );
+  checks++;
+  assert.equal(putCalls.length, 20);
+  checks++;
+  // The cap is per request, not per society: a second request for the same
+  // society accepts a document.
+  const secondFeasible = await request(
+    "/feasibility",
+    "POST",
+    d.cookie,
+    details,
+  );
+  assert.equal(secondFeasible.status, 201);
+  checks++;
+  const secondRequest = ((await secondFeasible.json()) as any).request;
+  assert.equal(
+    (await uploadDocument(origin, d.cookie, secondRequest.id, pdf)).status,
+    201,
+  );
+  checks++;
+  // Task 1 — the standard tier, on the mini-app (production router
+  // composition, trust proxy on). Each test uses its own TEST-NET-3 client
+  // IP so the per-IP buckets never leak between tests.
+  const reg = await account("SOCIETY", 92);
+  const standardIp = "203.0.113.10";
+  // Regression happy path: login, create a feasibility request, upload a
+  // document — all succeed under the new limits.
+  const miniLogin = await miniRequest(
+    "/auth/login",
+    "POST",
+    "",
+    { email: reg.user.email, password: "old-password-test" },
+    standardIp,
+  );
+  assert.equal(miniLogin.status, 200);
+  checks++;
+  const miniCookie = miniLogin.headers.get("set-cookie")!.split(";")[0];
+  const miniFeasible = await miniRequest(
+    "/feasibility",
+    "POST",
+    miniCookie,
+    details,
+    standardIp,
+  );
+  assert.equal(miniFeasible.status, 201);
+  checks++;
+  const miniRequestId = ((await miniFeasible.json()) as any).request.id;
+  assert.equal(
+    (
+      await uploadDocument(
+        miniOrigin,
+        miniCookie,
+        miniRequestId,
+        pdf,
+        "application/pdf",
+        standardIp,
+      )
+    ).status,
+    201,
+  );
+  checks++;
+  // Per-IP cap: seed the IP bucket to 99 for this minute and the next, so
+  // the next request is the 100th (allowed) and the one after is refused.
+  const cappedIp = "203.0.113.11";
+  await seedRateLimitBucket(
+    "STANDARD_REQUEST",
+    authRateLimitSubject(cappedIp, "*"),
+    99,
+  );
+  assert.equal(
+    (await miniRequest("/auth/me", "GET", reg.cookie, undefined, cappedIp))
+      .status,
+    200,
+  );
+  checks++;
+  assert.equal(
+    (await miniRequest("/auth/me", "GET", reg.cookie, undefined, cappedIp))
+      .status,
+    429,
+    "the 101st request from one IP in a minute is refused",
+  );
+  checks++;
+  // A different IP is unaffected by the first IP's cap.
+  assert.equal(
+    (
+      await miniRequest(
+        "/auth/me",
+        "GET",
+        reg.cookie,
+        undefined,
+        "203.0.113.12",
+      )
+    ).status,
+    200,
+  );
+  checks++;
+  // Reset-password limit: the same wrong token 6 times — the first five are
+  // refused as invalid tokens (400), the sixth hits the per-token bucket.
+  const resetIp = "203.0.113.31";
+  const wrongToken = "0".repeat(64);
+  for (let i = 1; i <= 5; i++) {
+    assert.equal(
+      (
+        await miniRequest(
+          "/auth/reset-password",
+          "POST",
+          "",
+          { token: wrongToken, password: "new-password-test" },
+          resetIp,
+        )
+      ).status,
+      400,
+      `wrong reset token attempt ${i} of 5`,
+    );
+    checks++;
+  }
+  assert.equal(
+    (
+      await miniRequest(
+        "/auth/reset-password",
+        "POST",
+        "",
+        { token: wrongToken, password: "new-password-test" },
+        resetIp,
+      )
+    ).status,
+    429,
+    "the 6th reset attempt for one token is refused",
+  );
+  checks++;
+  // Per-IP bucket: 51 distinct wrong tokens — the 51st hits the per-IP cap.
+  const resetFloodIp = "203.0.113.32";
+  // Tokens start at 1, not 0: String(0).padStart(64, "0") is the all-zeros
+  // token the per-token test above already exhausted (5 uses + 1 refusal),
+  // so reusing it here would trip the per-token bucket instead of proving
+  // the per-IP bucket. Tokens 1..50 are all distinct from it.
+  for (let i = 0; i < 50; i++) {
+    assert.equal(
+      (
+        await miniRequest(
+          "/auth/reset-password",
+          "POST",
+          "",
+          {
+            token: String(i + 1).padStart(64, "0"),
+            password: "new-password-test",
+          },
+          resetFloodIp,
+        )
+      ).status,
+      400,
+      `distinct wrong reset token ${i + 1} of 50`,
+    );
+    checks++;
+  }
+  assert.equal(
+    (
+      await miniRequest(
+        "/auth/reset-password",
+        "POST",
+        "",
+        { token: "9".repeat(64), password: "new-password-test" },
+        resetFloodIp,
+      )
+    ).status,
+    429,
+    "the 51st reset attempt from one IP is refused",
+  );
+  checks++;
+  // Logout is deliberately NOT rate-limited (clearSession only deletes the
+  // presented session): three logouts in a row all succeed.
+  const logoutIp = "203.0.113.33";
+  for (let i = 1; i <= 3; i++) {
+    assert.equal(
+      (await miniRequest("/auth/logout", "POST", reg.cookie, {}, logoutIp))
+        .status,
+      204,
+      `logout ${i} of 3`,
+    );
+    checks++;
+  }
+  // Global cap, LAST: with the global bucket seeded to 999, a request from
+  // one IP is the 1000th (allowed) and a request from a different IP — IP
+  // rotation — is refused. After this the global bucket is full, so no
+  // further mini-app request may follow.
+  await seedRateLimitBucket(
+    "STANDARD_REQUEST_GLOBAL",
+    authRateLimitSubject("global", "standard"),
+    999,
+  );
+  assert.equal(
+    (
+      await miniRequest(
+        "/auth/me",
+        "GET",
+        miniCookie,
+        undefined,
+        "203.0.113.13",
+      )
+    ).status,
+    200,
+  );
+  checks++;
+  assert.equal(
+    (
+      await miniRequest(
+        "/auth/me",
+        "GET",
+        miniCookie,
+        undefined,
+        "203.0.113.14",
+      )
+    ).status,
+    429,
+    "IP rotation does not beat the global cap",
+  );
+  checks++;
+  if (previousBlobToken === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
+  else process.env.BLOB_READ_WRITE_TOKEN = previousBlobToken;
   checks += await testAuthDelivery(origin);
   const concurrentEnquiries = await Promise.all(
     Array.from({ length: 8 }, () =>
@@ -1082,6 +1579,7 @@ try {
   );
 } finally {
   await new Promise<void>((resolve) => server.close(() => resolve()));
+  await new Promise<void>((resolve) => miniServer.close(() => resolve()));
   await engine.close();
   if (previousOtpSecret === undefined)
     delete process.env.RENOVA_AUTH_TOKEN_SECRET;

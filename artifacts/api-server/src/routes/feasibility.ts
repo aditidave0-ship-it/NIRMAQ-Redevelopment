@@ -3,7 +3,13 @@ import { Readable } from "node:stream";
 import express, { Router, type IRouter } from "express";
 import { get, put } from "@vercel/blob";
 import { z } from "@workspace/api-zod";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq } from "drizzle-orm";
+import {
+  authRateLimitSubject,
+  enforceAuthRateLimit,
+  tooManyRequestsError,
+  AUTH_RATE_LIMIT_POLICIES,
+} from "../lib/auth-rate-limit";
 import {
   auditLogs,
   feasibilityAssessments,
@@ -112,6 +118,67 @@ function privateStorageConfigured(): boolean {
   return Boolean(
     process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN,
   );
+}
+
+async function rateLimitFeasibilityCreate(
+  database: ReturnType<typeof getDb>,
+  request: { ip?: string },
+  organizationId: string,
+) {
+  // Prompt L, Task 1 (F6, request half) — the creation route had no quota.
+  // Two buckets, same shape as the auth actions: a per-IP bucket at 10x and
+  // a per-organization bucket at the policy limit. A society creates a
+  // feasibility request once per redevelopment cycle; 5 a day is far above
+  // any legitimate need. Runs before the transaction, so a limited request
+  // creates nothing.
+  await enforceAuthRateLimit(
+    database,
+    "FEASIBILITY_CREATE",
+    authRateLimitSubject(request.ip || "unknown", "*"),
+    {
+      ...AUTH_RATE_LIMIT_POLICIES.FEASIBILITY_CREATE,
+      limit: AUTH_RATE_LIMIT_POLICIES.FEASIBILITY_CREATE.limit * 10,
+    },
+  );
+  await enforceAuthRateLimit(
+    database,
+    "FEASIBILITY_CREATE",
+    authRateLimitSubject("organization", organizationId),
+    AUTH_RATE_LIMIT_POLICIES.FEASIBILITY_CREATE,
+  );
+}
+
+// Prompt L, Task 3 (F6, document half) — the hard cap on documents per
+// feasibility request. The number is the FEASIBILITY_DOCUMENT policy limit
+// (20), so the burst bucket and the cap always agree: the bucket bounds
+// uploads per day, the count check is the cap. A rate bucket is a rate, not
+// a cap — without the count query, 20 uploads a day forever would still
+// accumulate. Counts AVAILABLE documents only; removed documents do not
+// consume the cap.
+const FEASIBILITY_DOCUMENT_CAP =
+  AUTH_RATE_LIMIT_POLICIES.FEASIBILITY_DOCUMENT.limit;
+
+async function rateLimitFeasibilityDocument(
+  database: ReturnType<typeof getDb>,
+  requestId: string,
+) {
+  await enforceAuthRateLimit(
+    database,
+    "FEASIBILITY_DOCUMENT",
+    authRateLimitSubject("feasibility-request", requestId),
+    AUTH_RATE_LIMIT_POLICIES.FEASIBILITY_DOCUMENT,
+  );
+  const [existing] = await database
+    .select({ value: count() })
+    .from(feasibilityDocuments)
+    .where(
+      and(
+        eq(feasibilityDocuments.requestId, requestId),
+        eq(feasibilityDocuments.status, "AVAILABLE"),
+      ),
+    );
+  if ((existing?.value ?? 0) >= FEASIBILITY_DOCUMENT_CAP)
+    throw tooManyRequestsError();
 }
 
 async function societyIdForOrganization(
@@ -263,6 +330,14 @@ router.post(
           error: "Complete your Society profile before requesting feasibility",
         });
       const database = getDb();
+      // Prompt L, Task 1 — the F6 creation quota. After the society check
+      // and before the transaction, so a limited request creates nothing.
+      await rateLimitFeasibilityCreate(
+        database,
+        request,
+        // societyId is non-null here, so the organization exists.
+        request.auth!.organizationId!,
+      );
       const [created] = await database.transaction(async (tx) => {
         const rows = await tx
           .insert(feasibilityRequests)
@@ -497,6 +572,10 @@ router.post(
         return response
           .status(400)
           .json({ error: "Document content does not match its file type" });
+      // Prompt L, Task 3 — the F6 document quota. After validation (so an
+      // invalid upload does not consume quota) and before the Blob put, so
+      // a limited upload never writes a Blob object or a row.
+      await rateLimitFeasibilityDocument(getDb(), record.id);
       const safeName = fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-180);
       const storageKey = `feasibility/${record.id}/${randomBytes(12).toString("hex")}-${safeName}`;
       await put(storageKey, request.body, {

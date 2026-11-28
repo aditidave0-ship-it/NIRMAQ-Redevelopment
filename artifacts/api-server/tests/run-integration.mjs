@@ -23,6 +23,13 @@ try {
           build.onResolve({ filter: /^@workspace\/db$/ }, () => ({
             path: resolve("tests/database.ts"),
           }));
+          // Prompt L — the document-upload route writes to Vercel Blob
+          // before inserting the row. The suite must never touch real
+          // storage, and it must be able to count put() calls to prove a
+          // refused upload wrote nothing.
+          build.onResolve({ filter: /^@vercel\/blob$/ }, () => ({
+            path: resolve("tests/blob-stub.ts"),
+          }));
           build.onResolve({ filter: /^@workspace\/api-zod$/ }, () => ({
             path: resolve("../../lib/api-zod/src/index.ts"),
           }));
