@@ -11,6 +11,7 @@ import { FeasibilityDashboardPage } from "./experience/FeasibilityDashboard";
 import { GetStartedPage } from "./experience/GetStarted";
 import { getCanonicalUrl, getPageMeta } from "./experience/page-meta";
 import { PrivacyPage } from "./experience/PrivacyPages";
+import { PrivacyRequestPage } from "./experience/PrivacyRequestPage";
 import { sendRequirementEnquiry } from "./experience/requirement-enquiry";
 import {
   lazy,
@@ -2525,6 +2526,7 @@ function Router() {
   if (pathname === "/ecosystem") return <EcosystemDirectory />;
   if (pathname === "/contact") return <ContactPage />;
   if (pathname === "/privacy") return <PrivacyPage page="privacy" />;
+  if (pathname === "/privacy/request") return <PrivacyRequestPage />;
   if (pathname === "/terms") return <PrivacyPage page="terms" />;
   if (pathname === "/grievance") return <PrivacyPage page="grievance" />;
   if (pathname === "/knowledge-centre/faqs") return <FaqPage />;

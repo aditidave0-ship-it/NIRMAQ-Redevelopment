@@ -10,6 +10,7 @@ import {
   users,
   organizations,
   organizationMembers,
+  authSessions,
   enquiries,
   privacyRequests,
   privacyConsentEvents,
@@ -501,6 +502,185 @@ try {
     ).status,
     200,
   );
+  checks++;
+
+  // --- Prompt K Task 2a: every request type files, duplicates return the
+  // same reference ---------------------------------------------------------
+  const promptKEmail = "prompt-k-requester@example.invalid";
+  for (const type of ["CORRECTION", "DELETION"]) {
+    const filed = await request("/privacy/requests", "POST", "", {
+      email: promptKEmail,
+      type,
+      details: "TEST ONLY prompt K request",
+    });
+    assert.equal(filed.status, 202);
+    checks++;
+    const filedBody = (await filed.json()) as any;
+    assert.equal(filedBody.status, "IDENTITY_PENDING");
+    checks++;
+    assert.match(filedBody.reference, /^PRV-\d{4}-[0-9A-Z]{10}$/);
+    checks++;
+  }
+  const deletionRows = (
+    await db
+      .select()
+      .from(privacyRequests)
+      .where(eq(privacyRequests.email, promptKEmail))
+  ).filter((row) => row.type === "DELETION");
+  assert.equal(deletionRows.length, 1);
+  checks++;
+  const deletionReference = deletionRows[0].reference;
+  const duplicateDeletion = await request("/privacy/requests", "POST", "", {
+    email: promptKEmail,
+    type: "DELETION",
+  });
+  assert.equal(duplicateDeletion.status, 202);
+  checks++;
+  assert.equal(
+    ((await duplicateDeletion.json()) as any).reference,
+    deletionReference,
+  );
+  checks++;
+
+  // --- Prompt K Task 2b: "Delete my account" files a DELETION request and
+  // deletes nothing — no user/org rows removed, no session invalidated ----
+  const usersBefore = (await db.select().from(users)).length;
+  const orgsBefore = (await db.select().from(organizations)).length;
+  const membersBefore = (await db.select().from(organizationMembers)).length;
+  const sessionsBefore = (await db.select().from(authSessions)).length;
+  const deleteMine = await request(
+    "/privacy/requests",
+    "POST",
+    society.cookie,
+    {
+      email: society.user.email,
+      type: "DELETION",
+      details: "TEST ONLY delete my account",
+    },
+  );
+  assert.equal(deleteMine.status, 202);
+  checks++;
+  const deleteMineBody = (await deleteMine.json()) as any;
+  assert.equal(deleteMineBody.status, "SUBMITTED");
+  checks++;
+  assert.match(deleteMineBody.reference, /^PRV-\d{4}-[0-9A-Z]{10}$/);
+  checks++;
+  assert.equal((await db.select().from(users)).length, usersBefore);
+  checks++;
+  assert.equal((await db.select().from(organizations)).length, orgsBefore);
+  checks++;
+  assert.equal(
+    (await db.select().from(organizationMembers)).length,
+    membersBefore,
+  );
+  checks++;
+  assert.equal((await db.select().from(authSessions)).length, sessionsBefore);
+  checks++;
+  // The account stays usable: the same session still authenticates.
+  assert.equal((await request("/auth/me", "GET", society.cookie)).status, 200);
+  checks++;
+  const [deleteMineRow] = await db
+    .select()
+    .from(privacyRequests)
+    .where(eq(privacyRequests.reference, deleteMineBody.reference));
+  assert.equal(deleteMineRow.type, "DELETION");
+  checks++;
+  assert.equal(deleteMineRow.requesterUserId, society.user.id);
+  checks++;
+
+  // --- Prompt K Task 2d: the admin queue view's API — non-admin blocked,
+  // hold + decision through the existing PATCH route -----------------------
+  assert.equal(
+    (
+      await request(
+        `/admin/privacy-requests/${deleteMineRow.id}`,
+        "PATCH",
+        society.cookie,
+        { status: "IN_REVIEW" },
+      )
+    ).status,
+    403,
+  );
+  checks++;
+  assert.equal(
+    (
+      await request(
+        `/admin/privacy-requests/${deleteMineRow.id}`,
+        "PATCH",
+        "",
+        { status: "IN_REVIEW" },
+      )
+    ).status,
+    401,
+  );
+  checks++;
+  const queueReview = await request(
+    `/admin/privacy-requests/${deleteMineRow.id}`,
+    "PATCH",
+    admin.cookie,
+    { status: "IN_REVIEW", note: "TEST ONLY prompt K review started" },
+  );
+  assert.equal(queueReview.status, 200);
+  checks++;
+  assert.equal(((await queueReview.json()) as any).request.status, "IN_REVIEW");
+  checks++;
+  const queueHold = await request(
+    `/admin/privacy-requests/${deleteMineRow.id}`,
+    "PATCH",
+    admin.cookie,
+    { holdReason: "TEST ONLY legal review pending" },
+  );
+  assert.equal(queueHold.status, 200);
+  checks++;
+  assert.equal(((await queueHold.json()) as any).request.underHold, true);
+  checks++;
+  const queueDetail = await request(
+    `/admin/privacy-requests/${deleteMineRow.id}`,
+    "GET",
+    admin.cookie,
+  );
+  assert.equal(queueDetail.status, 200);
+  checks++;
+  const queueDetailBody = (await queueDetail.json()) as any;
+  assert.equal(
+    queueDetailBody.request.holdReason,
+    "TEST ONLY legal review pending",
+  );
+  checks++;
+  assert.ok(
+    queueDetailBody.history.some(
+      (event: any) => event.action === "HOLD_APPLIED",
+    ),
+  );
+  checks++;
+  assert.ok(
+    queueDetailBody.history.some(
+      (event: any) => event.action === "STATUS_CHANGED",
+    ),
+  );
+  checks++;
+  const queueDecision = await request(
+    `/admin/privacy-requests/${deleteMineRow.id}`,
+    "PATCH",
+    admin.cookie,
+    { status: "REJECTED", note: "TEST ONLY prompt K decision recorded" },
+  );
+  assert.equal(queueDecision.status, 200);
+  checks++;
+  assert.equal(
+    ((await queueDecision.json()) as any).request.status,
+    "REJECTED",
+  );
+  checks++;
+  const queueClosed = await request(
+    `/admin/privacy-requests/${deleteMineRow.id}`,
+    "PATCH",
+    admin.cookie,
+    { status: "CLOSED" },
+  );
+  assert.equal(queueClosed.status, 200);
+  checks++;
+  assert.equal(((await queueClosed.json()) as any).request.status, "CLOSED");
   checks++;
 
   // --- 18+ attestation: required at registration -------------------------
