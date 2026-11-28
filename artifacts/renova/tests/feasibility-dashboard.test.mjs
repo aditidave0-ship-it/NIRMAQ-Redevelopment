@@ -4,6 +4,7 @@ import {
   DASHBOARD_SECTIONS,
   EMPTY_DASHBOARD_ANSWERS,
   EMPTY_DASHBOARD_CONTACT,
+  VILLAGE_OPTIONS,
   buildDashboardEnquiryDetails,
   carpetTotalSqft,
   dashboardReadiness,
@@ -11,6 +12,7 @@ import {
   membersTotal,
   plotAreaSqft,
   validateDashboardSend,
+  villagesForTaluka,
 } from "../src/experience/feasibility-dashboard.ts";
 import { buildRequirementEnquiryPayload } from "../src/experience/requirement-enquiry.ts";
 
@@ -164,4 +166,50 @@ test("the dashboard has four sections in the file's order", () => {
     DASHBOARD_SECTIONS.map((section) => section.number),
     ["01", "02", "03", "04"],
   );
+});
+
+test("the Village dropdown follows the Taluka — the district's 87 revenue villages", () => {
+  // Counts from the Mumbai Suburban district's own village list
+  // (mumbaisuburban.gov.in): Andheri 25, Borivali 33, Kurla 29.
+  assert.equal(VILLAGE_OPTIONS.Andheri.length, 25);
+  assert.equal(VILLAGE_OPTIONS.Borivali.length, 33);
+  assert.equal(VILLAGE_OPTIONS.Kurla.length, 29);
+  const total =
+    VILLAGE_OPTIONS.Andheri.length +
+    VILLAGE_OPTIONS.Borivali.length +
+    VILLAGE_OPTIONS.Kurla.length;
+  assert.equal(total, 87);
+
+  const andheri = villagesForTaluka("Andheri");
+  assert.equal(andheri.length, 26); // 25 villages + "Other / To be confirmed"
+  assert.ok(andheri.includes("Andheri"));
+  assert.ok(andheri.includes("Juhu"));
+  assert.ok(andheri.includes("Bandra"));
+  assert.ok(andheri.includes("Varsova"));
+  assert.ok(!andheri.includes("Borivali"));
+
+  const borivali = villagesForTaluka("Borivali");
+  assert.equal(borivali.length, 34);
+  assert.ok(borivali.includes("Borivali"));
+  assert.ok(borivali.includes("Malad"));
+  assert.ok(borivali.includes("Kandivali"));
+  assert.ok(borivali.includes("Dahisar"));
+  assert.ok(!borivali.includes("Andheri"));
+
+  const kurla = villagesForTaluka("Kurla");
+  assert.equal(kurla.length, 30);
+  assert.ok(kurla.includes("Kurla"));
+  assert.ok(kurla.includes("Ghatkopar"));
+  assert.ok(kurla.includes("Mulund"));
+  assert.ok(kurla.includes("Chembur"));
+
+  // Mumbai City district has no revenue-village list of its own.
+  assert.deepEqual(villagesForTaluka("Mumbai City"), [
+    "Mumbai City",
+    "Other / To be confirmed",
+  ]);
+
+  // No taluka picked yet — no village options.
+  assert.deepEqual(villagesForTaluka(""), []);
+  assert.deepEqual(villagesForTaluka("Somewhere Else"), []);
 });
