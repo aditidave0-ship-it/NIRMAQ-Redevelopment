@@ -196,6 +196,48 @@ export async function testAuthDelivery(origin: string): Promise<number> {
       checks++;
     }
 
+    // Prompt H, Task 3.2: a registration body that smuggles in a role must
+    // not create an Admin. registrationSchema has no role field (Zod strips
+    // it) and registrationIdentity() derives the role server-side.
+    const injectedEmail = "controlled-injected-admin@example.invalid";
+    const injected = await request(
+      "/auth/register",
+      {
+        email: injectedEmail,
+        password: "test-password-valid",
+        displayName: "TEST ONLY injected admin",
+        participantType: "SOCIETY",
+        organizationName: "TEST ONLY injected admin",
+        ageAttestation: true,
+        role: "ADMIN",
+        isAdmin: true,
+      },
+      true,
+    );
+    assert.equal(injected.status, 202);
+    checks++;
+    const injectedToken = deliveredToken(injectedEmail, "verify");
+    assert.equal(
+      (await request("/auth/verify-email", { email: injectedEmail, otp: injectedToken }))
+        .status,
+      200,
+    );
+    checks++;
+    const [injectedUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, injectedEmail));
+    assert.equal(injectedUser.role, "SOCIETY");
+    checks++;
+    const injectedLogin = await request("/auth/login", {
+      email: injectedEmail,
+      password: "test-password-valid",
+    });
+    assert.equal(injectedLogin.status, 200);
+    checks++;
+    assert.equal(((await injectedLogin.json()) as any).user.role, "SOCIETY");
+    checks++;
+
     const [pending] = await db
       .insert(users)
       .values({

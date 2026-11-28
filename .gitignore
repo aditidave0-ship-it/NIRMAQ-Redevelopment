@@ -1,5 +1,12 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+# secrets — never commit environment files (Prompt H, Task 6 / gist attack 13).
+# History is clean (verified 28 Nov 2026: no .env file and no secret pattern
+# in any commit), but .gitignore had no .env entry, so one careless
+# `git add` could have committed a live key. This closes that gap.
+.env
+.env.*
+
 # compiled output
 dist
 tmp

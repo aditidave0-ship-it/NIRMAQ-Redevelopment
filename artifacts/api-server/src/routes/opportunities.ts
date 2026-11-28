@@ -59,6 +59,14 @@ const publicOpportunityFields = {
   publishedAt: opportunities.publishedAt,
 };
 
+// Prompt H, Task 5: escape the LIKE wildcards % and _ so a search term
+// matches literally. Same pattern as routes/enquiries.ts (admin search).
+// Without this, q=% would match every opportunity and q=100_ would match
+// "100%" — a caller could enumerate the whole directory with one request.
+function escapeIlike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
 router.get(
   "/opportunities",
   requireAuth(),
@@ -71,13 +79,15 @@ router.get(
       if (input.q)
         filters.push(
           or(
-            ilike(opportunities.title, `%${input.q}%`),
-            ilike(opportunities.description, `%${input.q}%`),
-            ilike(opportunities.location, `%${input.q}%`),
+            ilike(opportunities.title, `%${escapeIlike(input.q)}%`),
+            ilike(opportunities.description, `%${escapeIlike(input.q)}%`),
+            ilike(opportunities.location, `%${escapeIlike(input.q)}%`),
           )!,
         );
       if (input.location)
-        filters.push(ilike(opportunities.location, `%${input.location}%`));
+        filters.push(
+          ilike(opportunities.location, `%${escapeIlike(input.location)}%`),
+        );
       const rows = await database
         .select(publicOpportunityFields)
         .from(opportunities)
