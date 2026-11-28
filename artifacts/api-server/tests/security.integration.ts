@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import express, { type ErrorRequestHandler } from "express";
 import cookieParser from "cookie-parser";
-import { eq } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
 import {
   engine,
   db,
@@ -13,10 +13,10 @@ import {
   organizationMembers,
   authSessions,
   authTokens,
+  authRateLimits,
   enquiries,
 } from "./database";
 import auth from "../src/routes/auth";
-import renovaRouter from "../src/routes/renova";
 import opportunitiesRouter from "../src/routes/opportunities";
 import workspace from "../src/routes/workspace";
 import enquiriesRouter from "../src/routes/enquiries";
@@ -29,6 +29,10 @@ import {
   verifyPassword,
 } from "../src/lib/session";
 import { issueAuthToken, issueEmailOtp } from "../src/lib/auth-tokens";
+import {
+  authRateLimitSubject,
+  rateLimitWindowStart,
+} from "../src/lib/auth-rate-limit";
 import { testSandboxAndEmail } from "./sandbox-delivery";
 import sandboxBillingRouter from "../src/routes/sandbox-billing";
 import emailJobsRouter from "../src/routes/email-jobs";
@@ -55,6 +59,10 @@ await engine.exec(
 );
 
 const app = express();
+// Prompt H, Task 5: mirror production (renova-app.ts sets trust proxy: 1)
+// so request.ip reflects X-Forwarded-For in tests. The rate-limit test
+// below uses a TEST-NET-3 documentation address to isolate its bucket.
+app.set("trust proxy", 1);
 app.use(
   "/api/billing/webhook",
   express.raw({ type: "application/json", limit: "256kb" }),
@@ -63,7 +71,6 @@ app.use(express.json(), cookieParser());
 app.use(
   "/api",
   auth,
-  renovaRouter,
   opportunitiesRouter,
   workspace,
   enquiriesRouter,
@@ -132,6 +139,31 @@ async function account(
   };
 }
 try {
+  // Prompt H, Task 4: the unauthenticated legacy demo API is deleted. All
+  // six of its routes must now answer 404 — including to an unauthenticated
+  // caller and including POST /projects, which used to accept and store
+  // caller-supplied content. The public /regulations page now renders from
+  // static frontend data instead of GET /api/regulations.
+  for (const [method, path, body] of [
+    ["GET", "/dashboard", undefined],
+    ["GET", "/projects", undefined],
+    ["GET", "/projects/project-1", undefined],
+    [
+      "POST",
+      "/projects",
+      {
+        name: "TEST ONLY injected project",
+        location: "Mumbai",
+        societyType: "Co-operative Housing Society",
+      },
+    ],
+    ["GET", "/professionals", undefined],
+    ["GET", "/regulations", undefined],
+  ] as const) {
+    assert.equal((await request(path, method, "", body)).status, 404);
+    checks++;
+  }
+
   const professional = await account("PROFESSIONAL", 1);
   for (const specialization of [
     "ADVOCATE_LEGAL",
@@ -379,6 +411,60 @@ try {
   assert.equal("societyId" in publicFields, false);
   assert.equal("email" in publicFields, false);
   checks++;
+  // Prompt H, Task 5: % and _ in a discovery search match literally, not
+  // as LIKE wildcards. The second opportunity's title contains both.
+  const wildcardDraft = {
+    title: "TEST ONLY 100% redevelopment _pilot",
+    location: "Mumbai",
+    description: "TEST ONLY literal wildcard check",
+    publish: false,
+  };
+  const wildcardCreated = await request(
+    "/opportunities",
+    "POST",
+    a.cookie,
+    wildcardDraft,
+  );
+  assert.equal(wildcardCreated.status, 201);
+  checks++;
+  const { opportunity: wildcardOpportunity } =
+    (await wildcardCreated.json()) as any;
+  assert.equal(
+    (
+      await request(
+        `/societies/me/opportunities/${wildcardOpportunity.id}/publish`,
+        "POST",
+        a.cookie,
+        {},
+      )
+    ).status,
+    200,
+  );
+  checks++;
+  const searchIds = async (query: string) =>
+    (
+      (await (
+        await request(`/opportunities?${query}`, "GET", dev.cookie)
+      ).json()) as any
+    ).opportunities.map((row: { id: string }) => row.id) as string[];
+  // q=100% matches the literal % in the title.
+  assert.equal(
+    (await searchIds("q=100%25")).includes(wildcardOpportunity.id),
+    true,
+  );
+  checks++;
+  // q=100_ must NOT match "100%" — _ is literal, not a single-char wildcard.
+  assert.equal(
+    (await searchIds("q=100_")).includes(wildcardOpportunity.id),
+    false,
+  );
+  checks++;
+  // q=% matches only opportunities containing a literal % — not the whole
+  // directory (the first opportunity has no % anywhere).
+  const percentResults = await searchIds("q=%25");
+  assert.equal(percentResults.includes(wildcardOpportunity.id), true);
+  assert.equal(percentResults.includes(opportunity.id), false);
+  checks += 2;
   for (const actor of [dev, pmc])
     assert.equal(
       (
@@ -539,6 +625,27 @@ try {
       })
     ).status,
     200,
+  );
+  checks++;
+  // Prompt H, Task 3.2: a profile update that smuggles in a role must not
+  // promote the user. The PUT handler takes the role from the session
+  // (request.auth) and the schema has no role field, so the extra fields
+  // are stripped and the user row keeps its role.
+  assert.equal(
+    (
+      await request("/profiles/me", "PUT", a.cookie, {
+        organizationName: "TEST ONLY society profile",
+        city: "Mumbai",
+        role: "ADMIN",
+        isAdmin: true,
+      })
+    ).status,
+    200,
+  );
+  checks++;
+  assert.equal(
+    (await db.select().from(users).where(eq(users.id, a.user.id)))[0].role,
+    "SOCIETY",
   );
   checks++;
   assert.equal(
@@ -1052,6 +1159,81 @@ try {
     ).length,
     5,
   );
+  checks++;
+  // Prompt H, Task 5 (F5): the global enquiry rate limit. 21 submissions
+  // with rotating emails from one forwarded IP (TEST-NET-3 documentation
+  // address, never a real client): the fingerprint cap (5/hour per
+  // IP+email) never fires because every email is different; the per-IP
+  // bucket (20/hour) fires on the 21st. The global bucket is proven by
+  // counting — it must grow by exactly 21 across these submissions. The
+  // 429 body is masked by this suite's test error handler by design; the
+  // production handler returns "Too many requests. Please try again later."
+  const forwardedIp = "203.0.113.99";
+  const windowStartedAt = rateLimitWindowStart(new Date(), 60 * 60 * 1000);
+  const globalSubject = authRateLimitSubject("global", "enquiries");
+  const globalCount = async () => {
+    const [row] = await db
+      .select({ value: authRateLimits.requestCount })
+      .from(authRateLimits)
+      .where(
+        and(
+          eq(authRateLimits.action, "ENQUIRY_SUBMIT_GLOBAL"),
+          eq(authRateLimits.subjectHash, globalSubject),
+          eq(authRateLimits.windowStartedAt, windowStartedAt),
+        ),
+      );
+    return row?.value ?? 0;
+  };
+  const globalBefore = await globalCount();
+  const rateLimitStatuses: number[] = [];
+  for (let index = 0; index < 21; index += 1) {
+    const submitted = await fetch(origin + "/api/enquiries", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": forwardedIp,
+      },
+      body: JSON.stringify({
+        name: "TEST ONLY rate limit",
+        organizationName: "TEST ONLY society",
+        email: `rate-limit-${index}@example.invalid`,
+        phone: "9000000000",
+        city: "Mumbai",
+        actorType: "Housing Society",
+        message: "TEST ONLY global rate limit check",
+        consent: true,
+      }),
+    });
+    rateLimitStatuses.push(submitted.status);
+  }
+  assert.equal(
+    rateLimitStatuses.filter((status) => status === 201).length,
+    20,
+  );
+  checks++;
+  assert.equal(
+    rateLimitStatuses.filter((status) => status === 429).length,
+    1,
+  );
+  checks++;
+  assert.equal(
+    (
+      await db
+        .select()
+        .from(enquiries)
+        .where(
+          ilike(enquiries.email, "rate-limit-%@example.invalid"),
+        )
+    ).length,
+    20,
+    "the 21st submission must not create an enquiry",
+  );
+  checks++;
+  // The global bucket grows by 20, not 21: the 21st submission is rejected
+  // by the per-IP bucket first and never reaches the global bucket — by
+  // design, so one abusive IP cannot consume the shared global budget with
+  // requests that create no enquiry and no email.
+  assert.equal(await globalCount(), globalBefore + 20);
   checks++;
   checks += await testSandboxAndEmail(
     origin,

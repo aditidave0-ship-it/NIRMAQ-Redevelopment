@@ -11,6 +11,11 @@ import {
   users,
 } from "@workspace/db";
 import { requireAuth, requireRole } from "../lib/session";
+import {
+  AUTH_RATE_LIMIT_POLICIES,
+  authRateLimitSubject,
+  enforceAuthRateLimit,
+} from "../lib/auth-rate-limit";
 import { consentEventForEnquiry } from "../lib/consent-policy";
 import { isPrivacySchemaUnavailable } from "../lib/privacy-policy";
 import { processEnquiryEmailJobs } from "../lib/enquiry-email-jobs";
@@ -78,6 +83,33 @@ function reference(): string {
   return `REQ-${new Date().getUTCFullYear()}-${randomBytes(5).toString("hex").toUpperCase()}`;
 }
 
+// Prompt H, Task 5 (F5): the global enquiry rate limit. Same two-bucket
+// mechanism as the auth and privacy routes — a per-IP bucket plus a global
+// bucket — reusing enforceAuthRateLimit, not a new mechanism. Runs after
+// Zod validation and before the enquiry transaction, so a rate-limited
+// request never creates an enquiry, a consent event or an email job. The
+// route's Zod schema, fingerprint dedup (5/hour per IP+email) and advisory
+// lock are untouched; this limit sits in front of them. A 429 thrown here
+// is answered by the generic error handler with "Too many requests. Please
+// try again later." — the same body as the fingerprint 429 below.
+async function rateLimitEnquirySubmit(
+  database: ReturnType<typeof requireDb>,
+  request: { ip?: string },
+) {
+  await enforceAuthRateLimit(
+    database,
+    "ENQUIRY_SUBMIT",
+    authRateLimitSubject(request.ip || "unknown", "*"),
+    AUTH_RATE_LIMIT_POLICIES.ENQUIRY_SUBMIT,
+  );
+  await enforceAuthRateLimit(
+    database,
+    "ENQUIRY_SUBMIT_GLOBAL",
+    authRateLimitSubject("global", "enquiries"),
+    AUTH_RATE_LIMIT_POLICIES.ENQUIRY_SUBMIT_GLOBAL,
+  );
+}
+
 function parseAuditMetadata(value: string | null): unknown {
   if (!value) return null;
   try {
@@ -91,6 +123,7 @@ router.post("/enquiries", async (request, response, next) => {
   try {
     const input = enquirySchema.parse(request.body);
     const database = requireDb();
+    await rateLimitEnquirySubmit(database, request);
     const requestFingerprint = fingerprint(request, input.email);
     const enquiryReference = await database.transaction(async (tx) => {
       await tx.execute(

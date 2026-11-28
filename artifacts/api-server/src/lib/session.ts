@@ -26,16 +26,41 @@ export type AuthContext = {
   organizationId: string | null;
 };
 
+// Pinned scrypt parameters (Prompt H, Task 7.2). These are exactly Node's
+// defaults (N=16384, r=8, p=1), written out so the hash does not silently
+// change if a future Node version changes its defaults — and so the
+// parameters are visible to an auditor. Existing hashes still verify:
+// the parameters (and therefore the derived keys) are unchanged, so no
+// password reset or re-hash is needed. The same values are pinned in
+// lib/db/scripts/provision-first-admin.mjs (ADMIN_PASSWORD_SCRYPT).
+export const PASSWORD_SCRYPT = Object.freeze({
+  N: 16384,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024,
+  keyLength: 64,
+});
+
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
-  const derived = scryptSync(password, salt, 64).toString("hex");
+  const derived = scryptSync(password, salt, PASSWORD_SCRYPT.keyLength, {
+    N: PASSWORD_SCRYPT.N,
+    r: PASSWORD_SCRYPT.r,
+    p: PASSWORD_SCRYPT.p,
+    maxmem: PASSWORD_SCRYPT.maxmem,
+  }).toString("hex");
   return `${salt}:${derived}`;
 }
 
 export function verifyPassword(password: string, encoded: string): boolean {
   const [salt, stored] = encoded.split(":");
   if (!salt || !stored) return false;
-  const actual = scryptSync(password, salt, 64);
+  const actual = scryptSync(password, salt, PASSWORD_SCRYPT.keyLength, {
+    N: PASSWORD_SCRYPT.N,
+    r: PASSWORD_SCRYPT.r,
+    p: PASSWORD_SCRYPT.p,
+    maxmem: PASSWORD_SCRYPT.maxmem,
+  });
   const expected = Buffer.from(stored, "hex");
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
